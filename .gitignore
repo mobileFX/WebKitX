@@ -32,3 +32,8 @@
 *.ipch
 *.suo
 *.sdf
+
+!/lib/Release/libcef.lib
+!/lib/Release/libcef_dll_wrapper.lib
+
+!.gitignore

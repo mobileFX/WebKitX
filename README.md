@@ -25,7 +25,7 @@ I plan to integrate CEF3 but my goal is to create an HTML5 WYSIWYG Editor for my
 
 DLLs and Libraries
 ------------------
-I have included pre-built CEF1 DLLS thare are required only if you enable Hardware Accelerated Graphics (settings.graphics_implementation = ANGLE_IN_PROCESS). In theory if you choose a software graphics engine then the DLLs are not required.
+I have included pre-built CEF1 DLLS that are required only if you enable Hardware Accelerated Graphics (settings.graphics_implementation = ANGLE_IN_PROCESS). In theory if you choose a software graphics engine then the DLLs are not required.
 
 Notes about compiling CEF1|3 for ActiveX
 ----------------------------------------

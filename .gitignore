@@ -36,7 +36,6 @@
 !/lib/Release/libcef.lib
 !/lib/Release/libcef_dll_wrapper.lib
 
-/Release
 !/Release/icudt.dll
 !/Release/libcef.dll
 !/Release/libEGL.dll
@@ -44,5 +43,8 @@
 !/Release/Project1.exe
 !/Release/d3dcompiler_43.dll
 !/Release/d3dx9_43.dll
+!/Release/WebKitX.ocx
+
+/Release
 
 !.gitignore

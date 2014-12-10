@@ -1,0 +1,24 @@
+﻿Build started 10/12/2014 14:38:58.
+     1>Project "D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\WebKitX.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Touching "Release (CEF1)\WebKitX.unsuccessfulbuild".
+       Midl:
+         All outputs are up-to-date.
+       ClCompile:
+         All outputs are up-to-date.
+         All outputs are up-to-date.
+       ResourceCompile:
+         All outputs are up-to-date.
+       Link:
+         All outputs are up-to-date.
+         WebKitX.vcxproj -> D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\..\Studio\WebKitX.ocx
+       Manifest:
+         All outputs are up-to-date.
+       FinalizeBuildStatus:
+         Deleting file "Release (CEF1)\WebKitX.unsuccessfulbuild".
+         Touching "Release (CEF1)\WebKitX.lastbuildstate".
+     1>Done Building Project "D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\WebKitX.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.06

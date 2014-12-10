@@ -16,8 +16,12 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CWebKitXCtrl : 
-	public COleControl,
-	public CefApp	
+	public CefApp,
+	public COleControl	
+	
+	#ifdef CEF_VERSION_3
+	,public CefBrowserProcessHandler
+	#endif	
 {
 	DECLARE_DYNCREATE(CWebKitXCtrl)
 
@@ -37,6 +41,10 @@ public:
 
 	void CreateCEF();
 	void DestroyCEF();
+
+	#ifdef CEF_VERSION_3
+	virtual void OnContextInitialized() OVERRIDE;
+	#endif
 
 	virtual void OnDraw(CDC* pdc, const CRect& rcBounds, const CRect& rcInvalid);
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);

@@ -1,0 +1,5 @@
+[1210/141127:ERROR:icu_util.cc(149)] Couldn't mmap D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF3\DLLs\icudtl.dat
+[1210/141127:FATAL:content_main_runner.cc(738)] Check failed: base::i18n::InitializeICU(). 
+[1210/141156:ERROR:icu_util.cc(149)] Couldn't mmap D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF3\DLLs\icudtl.dat
+[1210/141156:FATAL:content_main_runner.cc(738)] Check failed: base::i18n::InitializeICU(). 
+[1210/142247:ERROR:renderer_main.cc(211)] Running without renderer sandbox

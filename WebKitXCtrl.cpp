@@ -113,14 +113,16 @@ void CWebKitXCtrl::OnDraw(CDC* pdc, const CRect& rcBounds, const CRect& rcInvali
 	static bool created = false;
 	if(AmbientUserMode() && !created && m_hWnd)
 	{		
-		created = true;
+		created = true;		
 		CreateCEF();	
+		CreateCEF();
 	}
 	DoSuperclassPaint(pdc, rcBounds);
 	pdc->FillRect(rcBounds, CBrush::FromHandle((HBRUSH)GetStockObject(WHITE_BRUSH)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef CEF_VERSION_1
 void CWebKitXCtrl::CreateCEF()
 {
 	CefSettings settings;
@@ -141,6 +143,7 @@ void CWebKitXCtrl::CreateCEF()
 		info.SetAsChild(m_hWnd, rect);		
 
 		CefBrowserSettings browser_settings;
+
 		browser_settings.accelerated_2d_canvas_disabled = false;
 		browser_settings.accelerated_compositing_enabled = true;
 		browser_settings.accelerated_filters_disabled = false;
@@ -174,7 +177,7 @@ void CWebKitXCtrl::CreateCEF()
 		browser_settings.javascript_disabled = true;
 		browser_settings.javascript_open_windows_disallowed = true;
 		browser_settings.page_cache_disabled = true;
-		browser_settings.plugins_disabled = true;
+		browser_settings.plugins_disabled = true;		
 
 		g_handler = new WebKitHandler(this);
 
@@ -194,6 +197,70 @@ void CWebKitXCtrl::DestroyCEF()
 	m_Browser->StopLoad();
 	m_Browser->ParentWindowWillClose();
 }
+
+#endif
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef CEF_VERSION_3
+void CWebKitXCtrl::CreateCEF()
+{	
+	CefSettings settings;
+	settings.no_sandbox								= true;
+	settings.multi_threaded_message_loop			= true;
+	settings.single_process							= false;
+	settings.pack_loading_disabled					= true;
+	settings.uncaught_exception_stack_size			= 10;			
+
+	CefRefPtr<CefApp> app;	
+	CefMainArgs main_args;
+
+	int exit_code = CefExecuteProcess(main_args, app.get(), NULL);
+	if (exit_code >= 0) return;
+
+	if(CefInitialize(main_args, settings, app.get(), NULL))
+	{
+
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CefBrowserProcessHandler methods:
+void CWebKitXCtrl::OnContextInitialized()
+{
+	CEF_REQUIRE_UI_THREAD();
+	
+	RECT rect;
+	::GetClientRect(m_hWnd, &rect);
+
+	CefWindowInfo window_info;	
+	window_info.SetAsChild(m_hWnd, rect);		
+
+	CefBrowserSettings browser_settings;
+	browser_settings.java = STATE_DISABLED;
+	browser_settings.javascript = STATE_DISABLED;
+	browser_settings.plugins = STATE_DISABLED;
+	browser_settings.local_storage = STATE_DISABLED;
+	browser_settings.databases = STATE_DISABLED;
+	browser_settings.webgl = STATE_ENABLED;
+
+	g_handler = new WebKitHandler(this);
+
+	if(CefBrowserHost::CreateBrowser(window_info, g_handler.get(), "", browser_settings, NULL))
+	{				
+		//SetTimer(IDT_TIMER, 1, TimerProc);
+		//CefRunMessageLoop();				
+		SIG_READY = CreateEvent(NULL, true, false, NULL);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CWebKitXCtrl::DestroyCEF()
+{
+	//KillTimer(IDT_TIMER);
+	m_Browser->StopLoad();
+}
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CALLBACK CWebKitXCtrl::TimerProc(HWND hwnd, UINT uMsg, UINT timerId, DWORD dwTime) { if(g_instnace) g_instnace->tick(); }
@@ -290,8 +357,14 @@ BSTR CWebKitXCtrl::GetHTML(void)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CWebKitXCtrl::ExecuteGetSource(CefRefPtr<CefFrame> frame)
-{
+{	
+	#ifdef CEF_VERSION_1
 	g_instnace->response = frame->GetSource();
+	#endif
+
+	#ifdef CEF_VERSION_3
+	#endif
+
 	SetEvent(g_instnace->SIG_READY);
 }
 

@@ -50,6 +50,7 @@
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.ocx</TargetExt>
     <LibraryPath>$(SolutionDir)\lib\$(Configuration);$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)\..\Studio</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

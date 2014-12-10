@@ -36,6 +36,7 @@
 !/lib/Release/libcef.lib
 !/lib/Release/libcef_dll_wrapper.lib
 
+/Release
 !/Release/icudt.dll
 !/Release/libcef.dll
 !/Release/libEGL.dll

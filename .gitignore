@@ -30,3 +30,5 @@
 *.rar
 
 *.ipch
+*.suo
+*.sdf

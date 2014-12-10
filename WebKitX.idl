@@ -1,0 +1,55 @@
+// WebKitX.idl : type library source for ActiveX Control project.
+
+// This file will be processed by the MIDL compiler tool to
+// produce the type library (WebKitX.tlb) that will become a resource in
+// WebKitX.ocx.
+
+#include <olectl.h>
+#include <idispids.h>
+
+[ uuid(7493F856-8B5B-47C2-8336-71D5CA8433D9), version(1.0),
+  control ]
+library WebKitXLib
+{
+	importlib(STDOLE_TLB);
+
+	//  Primary dispatch interface for CWebKitXCtrl
+	[ 		
+		uuid(ECEC4ADA-DE49-4358-B708-C3410F8CDDDA)	
+	]
+	dispinterface _DWebKitX
+	{
+		properties:
+			[id(2)] BSTR HTML;
+			[id(0)] BSTR _HTML;			
+
+	methods:			
+			[id(1)] void OpenURL([in] BSTR URL);			
+			[id(3)] void Edit(void);
+			[id(4)] void Preview(void);
+	};
+
+	//  Event dispatch interface for CWebKitXCtrl
+
+	[ 
+		uuid(3EE33618-BC27-40E9-B73D-87A49DEF0C8A)	
+	]
+	dispinterface _DWebKitXEvents
+	{
+		properties:
+			//  Event interface has no properties
+
+		methods:
+	};
+
+	//  Class information for CWebKitXCtrl
+	[
+		uuid(D9EA077F-4E5F-4BBD-9ACD-02E7021CDEFE)
+	]
+	coclass WebKitX
+	{
+		[default] dispinterface _DWebKitX;
+		[default, source] dispinterface _DWebKitXEvents;
+	};
+
+};

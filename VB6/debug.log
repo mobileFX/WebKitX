@@ -1,0 +1,11 @@
+[1209/114847:WARNING:resource_bundle.cc(303)] locale_file_path.empty()
+[1209/115443:WARNING:resource_bundle.cc(303)] locale_file_path.empty()
+[1209/115446:WARNING:resource_bundle.cc(303)] locale_file_path.empty()
+[1209/115506:WARNING:resource_bundle.cc(303)] locale_file_path.empty()
+[1209/115555:WARNING:resource_bundle.cc(303)] locale_file_path.empty()
+[1209/115609:WARNING:resource_bundle.cc(303)] locale_file_path.empty()
+[1209/115611:FATAL:window_impl.cc(114)] Check failed: atom. 1410
+[1209/115636:WARNING:resource_bundle.cc(303)] locale_file_path.empty()
+[1209/115719:WARNING:resource_bundle.cc(303)] locale_file_path.empty()
+[1209/115918:WARNING:resource_bundle.cc(303)] locale_file_path.empty()
+[1209/120043:WARNING:resource_bundle.cc(303)] locale_file_path.empty()

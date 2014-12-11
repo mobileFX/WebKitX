@@ -38,8 +38,8 @@ class WebKitHandler : public CefClient, public CefLifeSpanHandler
 
 > The trick for successfully wrapping CEF into an ActiveX is two use two classes, one for the actual ActiveX Control and one for the Browser handler. The reason is that CEF classes implement some short of reference counting mechanism and if you combine them it creates a reference counting mess.
 
-The Problem
------------
+The challenge wrapping CEF into ActiveX
+---------------------------------------
 CEF1 implementation was very straight forward, but there was a problem related with CefShutdown() that if called on ActiveX Control Destructor it would permanently unload CEF Runtime without being able to re-initialize on the same process. 
 
 As a result of this problem, the ActiveX would work perfectly only once and next time you would try to run it from the same process (eg. reload the Form that uses it) it wouldn't load CEF Runtime.

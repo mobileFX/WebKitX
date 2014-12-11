@@ -14,13 +14,29 @@ CEF is the acronym for Chromium Embedded Framework, which encapsulates WebKit HT
 
 The main architectural difference between CEF1 and CEF3 is that CEF3 is using using sub-processes (.exe files) mainly for rendering, and synchronizes all processes using IPC. This adds some process-management complexity wrapping it into an ActiveX and for that reason I decided to deal with CEF1 first.
 
-CEF has two static libraries: libcef.lib and libcef_dll_wrapper.lib. Both static libraries must be compiles with /MD before you can successfully link them with an ActiveX DLL project. I have added some comments about it at the end of this doc.
+CEF has two static libraries: libcef.lib and libcef_dll_wrapper.lib. Both static libraries must be compiled with /MD before you can successfully link them with an ActiveX DLL project. I have added some comments about it at the end of this doc.
 
 The idea of wrapping CEF into an ActiveX is very simple:
 
 * You create a MFC/ATL ActiveX Control class that will create the CefBrowser object. MFC ActiveX controls inherit from COleControl which in turn inherits from CWnd and therefore have a hWnd window handle. We wait until the first paint of the control and create the CefBrowser passing to it the hWnd handle of the control.
 
-* We also create WebKitHandler, a simple CefClient descendant class that will be receiving callbacks from CefBrowser. There is a vast array of callback classes you can multiple-inherit WebKitHandler from, depending on the extend of control you need.
+> The class must inherit from COleControl and CefApp IN THAT ORDER - IT IS IMPORTANT!!
+
+```C++
+class CWebKitXCtrl : public COleControl, public CefApp
+{
+}
+```
+
+* We also create WebKitHandler, a simple CefClient descendant class that will be receiving callbacks from CefBrowser using callback definition classes such as CefLifeSpanHandler. There is a vast array of callback classes you can multiple-inherit WebKitHandler from, depending on the extend of control you need.
+
+```C++
+class WebKitHandler : public CefClient, public CefLifeSpanHandler
+{
+}
+```
+
+> The trick for successfully wrapping CEF into an ActiveX is two use two classes, one for the actual ActiveX Control and one for the Browser handler. The reason is that CEF classes implement some short of reference counting mechanism and if you combine them it creates a reference counting mess.
 
 The Problem
 -----------

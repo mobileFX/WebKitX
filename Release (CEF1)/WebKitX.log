@@ -1,24 +1,106 @@
-﻿Build started 10/12/2014 14:38:58.
-     1>Project "D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\WebKitX.vcxproj" on node 2 (build target(s)).
+﻿Build started 11/12/2014 05:02:46.
+     1>Project "D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\WebKitX.vcxproj" on node 2 (rebuild target(s)).
      1>InitializeBuildStatus:
-         Touching "Release (CEF1)\WebKitX.unsuccessfulbuild".
+         Creating "Release (CEF1)\WebKitX.unsuccessfulbuild" because "AlwaysCreate" was specified.
        Midl:
-         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\midl.exe /D NDEBUG /W1 /nologo /char signed /env win32 /h "WebKitXidl.h" /tlb "Release (CEF1)\WebKitX.tlb" /robust WebKitX.idl 
+         Processing .\WebKitX.idl
+         WebKitX.idl
+         Processing C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\oaidl.idl
+         oaidl.idl
+         Processing C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\objidl.idl
+         objidl.idl
+         Processing C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\unknwn.idl
+         unknwn.idl
+         Processing C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\wtypes.idl
+         wtypes.idl
+         Processing C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\basetsd.h
+         basetsd.h
+         Processing C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\guiddef.h
+         guiddef.h
+         Processing C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\include\oaidl.acf
+         oaidl.acf
        ClCompile:
-         All outputs are up-to-date.
-         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W0 /WX- /Od /Oi /Oy- /GL /D WIN32 /D _WINDOWS /D DEBUG /D _USRDLL /D _WINDLL /D _UNICODE /D UNICODE /D _AFXDLL /Gm- /EHa /MD /Gy /Zc:wchar_t /Zc:forScope /GR /Yc"StdAfx.h" /Fp"Release (CEF1)\WebKitX.pch" /Fo"Release (CEF1)\\" /Fd"Release (CEF1)\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W0 /WX- /Od /Oi /Oy- /GL /D WIN32 /D _WINDOWS /D DEBUG /D _USRDLL /D _WINDLL /D _UNICODE /D UNICODE /D _AFXDLL /Gm- /EHa /MD /Gy /Zc:wchar_t /Zc:forScope /GR /Yu"StdAfx.h" /Fp"Release (CEF1)\WebKitX.pch" /Fo"Release (CEF1)\\" /Fd"Release (CEF1)\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt WebKitHandler.cpp WebKitX.cpp WebKitXCtrl.cpp
+         WebKitHandler.cpp
+         WebKitX.cpp
+         WebKitXCtrl.cpp
        ResourceCompile:
-         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /D NDEBUG /D _UNICODE /D UNICODE /D _AFXDLL /l"0x0409" /I"Release (CEF1)\\" /nologo /fo"Release (CEF1)\WebKitX.res" WebKitX.rc 
        Link:
-         All outputs are up-to-date.
-         WebKitX.vcxproj -> D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\..\Studio\WebKitX.ocx
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\\CEF\CEF1\DLLs\WebKitX.ocx" /INCREMENTAL:NO /NOLOGO /DEF:".\WebKitX.def" /MANIFEST /ManifestFile:"Release (CEF1)\WebKitX.ocx.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\WebKitX.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\\CEF\CEF1\DLLs\WebKitX.lib" /MACHINE:X86 /DLL "Release (CEF1)\WebKitX.res"
+         "Release (CEF1)\stdafx.obj"
+         "Release (CEF1)\WebKitHandler.obj"
+         "Release (CEF1)\WebKitX.obj"
+         "Release (CEF1)\WebKitXCtrl.obj"
+            Creating library D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\\CEF\CEF1\DLLs\WebKitX.lib and object D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\\CEF\CEF1\DLLs\WebKitX.exp
+         Generating code
+         Finished generating code
+     1>libcef_dll_wrapper.lib(transfer_util.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(transfer_util.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(stream_reader_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(stream_reader_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(domdocument_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(domdocument_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(response_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(response_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(browser_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(browser_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(v8value_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(v8value_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(v8stack_trace_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(v8stack_trace_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(request_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(request_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(scheme_handler_callback_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(scheme_handler_callback_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(post_data_element_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(post_data_element_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(v8exception_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(v8exception_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(post_data_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(post_data_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(scheme_registrar_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(scheme_registrar_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(domevent_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(domevent_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(v8stack_frame_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(v8stack_frame_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(geolocation_callback_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(geolocation_callback_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(domnode_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(domnode_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(web_plugin_info_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(web_plugin_info_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(frame_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(frame_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(drag_data_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(drag_data_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(v8context_ctocpp.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(v8context_ctocpp.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(libcef_dll_wrapper.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(libcef_dll_wrapper.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(scheme_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(scheme_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(zoom_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(zoom_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(request_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(request_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(find_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(find_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(v8accessor_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(v8accessor_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(domvisitor_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(domvisitor_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(task_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(task_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(proxy_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(proxy_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(focus_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(focus_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(drag_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(drag_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(domevent_listener_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(domevent_listener_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(render_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(render_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(keyboard_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(keyboard_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(permission_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(permission_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(menu_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(menu_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(read_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(read_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(app_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(app_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(resource_bundle_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(resource_bundle_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(geolocation_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(geolocation_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(print_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(print_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(scheme_handler_factory_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(scheme_handler_factory_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(download_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(download_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(client_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(client_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(display_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(display_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(load_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(load_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(get_geolocation_callback_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(get_geolocation_callback_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(life_span_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(life_span_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(v8context_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(v8context_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(jsdialog_handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(jsdialog_handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(v8handler_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(v8handler_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+     1>libcef_dll_wrapper.lib(content_filter_cpptoc.obj) : warning LNK4099: PDB 'vc100.pdb' was not found with 'libcef_dll_wrapper.lib(content_filter_cpptoc.obj)' or at 'D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\CEF\CEF1\DLLs\vc100.pdb'; linking object as if no debug info
+         WebKitX.vcxproj -> D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\\CEF\CEF1\DLLs\WebKitX.ocx
        Manifest:
-         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\\CEF\CEF1\DLLs\WebKitX.ocx;#2" /manifest "Release (CEF1)\WebKitX.ocx.intermediate.manifest" "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\Include\Manifest\dpiaware.manifest"
+       RegisterOutput:
+         regsvr32 /s "D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\\CEF\CEF1\DLLs\WebKitX.ocx"
        FinalizeBuildStatus:
          Deleting file "Release (CEF1)\WebKitX.unsuccessfulbuild".
          Touching "Release (CEF1)\WebKitX.lastbuildstate".
-     1>Done Building Project "D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\WebKitX.vcxproj" (build target(s)).
+     1>Done Building Project "D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\WebKitX.vcxproj" (rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.06
+Time Elapsed 00:00:08.94

@@ -6,6 +6,15 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CEF3Process", "CEF3Process\CEF3Process.vcxproj", "{D4B1BC9F-E39B-4DCC-B635-213165FCE01D}"
 EndProject
 Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 3
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = CEF3Process\\CEF3Process.vcxproj
+		SccLocalPath1 = .
+		SccProjectFilePathRelativizedFromConnection1 = CEF3Process\\
+		SccProjectUniqueName2 = WebKitX.vcxproj
+		SccLocalPath2 = .
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Release (CEF1)|Win32 = Release (CEF1)|Win32
 		Release (CEF3)|Win32 = Release (CEF3)|Win32

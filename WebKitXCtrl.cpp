@@ -1,11 +1,8 @@
 #include "stdafx.h"
 #include "WebKitX.h"
 #include "WebKitXCtrl.h"
-#include "WebKitXPropPage.h"
 #include "afxdialogex.h"
-
 #include "WebKitHandler.h"
-#include "comutil.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -42,9 +39,7 @@ END_EVENT_MAP()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Property pages
-BEGIN_PROPPAGEIDS(CWebKitXCtrl, 1)
-	PROPPAGEID(CWebKitXPropPage::guid)
-END_PROPPAGEIDS(CWebKitXCtrl)
+LPCLSID CWebKitXCtrl::GetPropPageIDs(ULONG& cPropPages) { return 0; }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initialize class factory and guid
@@ -114,8 +109,7 @@ void CWebKitXCtrl::OnDraw(CDC* pdc, const CRect& rcBounds, const CRect& rcInvali
 	if(AmbientUserMode() && !created && m_hWnd)
 	{		
 		created = true;		
-		CreateCEF();	
-		CreateCEF();
+		CreateCEF();		
 	}
 	DoSuperclassPaint(pdc, rcBounds);
 	pdc->FillRect(rcBounds, CBrush::FromHandle((HBRUSH)GetStockObject(WHITE_BRUSH)));
@@ -261,14 +255,6 @@ void CWebKitXCtrl::DestroyCEF()
 }
 
 #endif
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CALLBACK CWebKitXCtrl::TimerProc(HWND hwnd, UINT uMsg, UINT timerId, DWORD dwTime) { if(g_instnace) g_instnace->tick(); }
-void CWebKitXCtrl::tick()
-{	
-	if(!m_Browser) return;
-	//CefDoMessageLoopWork();
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CWebKitXCtrl::DoPropExchange - Persistence support

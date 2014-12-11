@@ -10,7 +10,7 @@
 #define VC_EXTRALEAN            // Exclude rarely-used stuff from Windows headers
 #endif
 
-#include "targetver.h"
+#include <SDKDDKVer.h>
 
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS      // some CString constructors will be explicit
 #define _ATL_NO_AUTOMATIC_NAMESPACE             // avoid class name conflicts
@@ -37,3 +37,14 @@
 #endif // _AFX_NO_DAO_SUPPORT
 
 #endif // _WIN64
+
+#include <iostream>
+#include <string>
+#include <locale>
+#include <codecvt>
+#include <list>
+#include <string>
+#include <process.h>
+
+void debugPrint(const char* fmt, ...);
+std::string ws2s(const std::wstring& wstr);

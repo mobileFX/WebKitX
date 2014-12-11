@@ -14,12 +14,9 @@
     <ProjectGuid>{08350227-9BE9-4AC6-AD64-7691492A3A26}</ProjectGuid>
     <RootNamespace>WebKitX</RootNamespace>
     <Keyword>MFCActiveXProj</Keyword>
-    <SccProjectName>
-    </SccProjectName>
-    <SccLocalPath>
-    </SccLocalPath>
-    <SccProvider>
-    </SccProvider>
+    <SccProjectName>"$/Coconut 2D/WebKitX/WebKitX", ROEIAAAA</SccProjectName>
+    <SccLocalPath>.</SccLocalPath>
+    <SccProvider>MSSCCI:Microsoft Visual SourceSafe</SccProvider>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (CEF1)|Win32'" Label="Configuration">
@@ -53,7 +50,7 @@
     <TargetExt>.ocx</TargetExt>
     <IncludePath>$(IncludePath);$(SolutionDir)\CEF\CEF1</IncludePath>
     <LibraryPath>$(SolutionDir)\CEF\CEF1\lib;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)..\Studio\</OutDir>
+    <OutDir>$(SolutionDir)\CEF\CEF1\DLLs\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (CEF3)|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -64,19 +61,25 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (CEF1)|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <FloatingPointModel>Fast</FloatingPointModel>
-      <StringPooling>true</StringPooling>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <EnableFiberSafeOptimizations>
+      </EnableFiberSafeOptimizations>
+      <FloatingPointModel>
+      </FloatingPointModel>
+      <StringPooling>
+      </StringPooling>
+      <BufferSecurityCheck>
+      </BufferSecurityCheck>
+      <FloatingPointExceptions>
+      </FloatingPointExceptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,21 +150,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (CEF1)|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (CEF3)|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="WebKitHandler.cpp" />
     <ClCompile Include="WebKitX.cpp" />
     <ClCompile Include="WebKitXCtrl.cpp" />
-    <ClCompile Include="WebKitXPropPage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="Utils.h" />
     <ClInclude Include="WebKitHandler.h" />
     <ClInclude Include="WebKitX.h" />
     <ClInclude Include="WebKitXCtrl.h" />
-    <ClInclude Include="WebKitXPropPage.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebKitX.rc" />

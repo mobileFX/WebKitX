@@ -33,6 +33,10 @@
 *.suo
 *.sdf
 
+*.pdb
+*.oca
+*.exp
+*.vbw
 
 
 !/lib/Release/libcef.lib

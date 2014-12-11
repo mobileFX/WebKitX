@@ -156,8 +156,8 @@ mobileFX CTO/Partner.
 Contribute / Donate
 -------------------
 If this project is useful for you, you can help me sustain it either by contributing or by donating with Paypal.
-[<img src="http://www.google.com.au/images/nav_logo7.png">](http://google.com.au/)
-![](donate.png)
+[<img src="donate.png">](http://google.com.au/)
+
 
 
 

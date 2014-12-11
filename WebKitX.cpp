@@ -96,17 +96,23 @@ STDAPI DllUnregisterServer(void)
 #endif // (_X86_)||(_SHX_)
 #endif // !_WIN32_WCE && !_AMD64_ && !_IA64_ 
 
-STDAPI DllCanUnloadNow(void)
-{
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	STDAPI DllCanUnloadNow(void)
+	{
+		AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
-	//Nasty Hack !!!
-	return S_FALSE;
-
-	if (_AtlModule.GetLockCount() > 0)
+		//Nasty Hack !!!
 		return S_FALSE;
-	return S_OK;
-}
+
+		if (_AtlModule.GetLockCount() > 0)
+			return S_FALSE;
+
+		//if(HOST_PROCESS_STILL_RUNNING)
+		//	return S_FALSE;
+
+		//CefShutdown();
+
+		return S_OK;
+	}
 
 // DllGetClassObject - Returns class factory
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv)

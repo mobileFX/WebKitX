@@ -1,3 +1,5 @@
+[![](WebKitX.png)]
+
 WebKitX
 =======
 
@@ -7,13 +9,56 @@ Background
 ----------
 Purpose of this project was to create a light-weight CEF ActiveX wrapper for CEF3 but due to several problems with multithreading and VB6, I decided to wrap CEF1 first and then move to CEF3 slowly.
 
-Known Issues
-------------
-CEF1 implementation was very straight forward, but there is a problem related with CefShutdown() that if called on ActiveX Control destructor it permanently unloads CEF Runtime without being able to re-initialize on the same process. 
+The Problem
+-----------
+CEF1 implementation was very straight forward, but there was a problem related with CefShutdown() that if called on ActiveX Control Destructor it would permanently unload CEF Runtime without being able to re-initialize on the same process. 
 
-Thus the ActiveX works perfectly only once! :-( Next time you try to run it from the same process (eg. reload the Form that uses it) it won't load CEF Runtime.
+As a result of this problem, the ActiveX would work perfectly only once and next time you would try to run it from the same process (eg. reload the Form that uses it) it wouldn't load CEF Runtime.
 
-This is related with CEF assuming that runs inside an .EXE and not inside an OLE Host and because CefShutdown() must be called in order to terminate several background threads, that if not terminated will crash the ActiveX when it unloads.
+This behavior is related with CEF assuming that runs inside an .EXE and not inside an OLE Host. CefShutdown() must be called in order to terminate several background threads, that if not terminated crash the ActiveX when it unloads.
+
+The Hack
+--------
+
+The hack I decided to do was to prevent the ActiveX .OCX file from unloading until the host process actually dies. To do so I return S_FALSE on DllCanUnloadNow().
+
+```C++
+	STDAPI DllCanUnloadNow(void)
+	{
+		AFX_MANAGE_STATE(AfxGetStaticModuleState());
+
+		if (_AtlModule.GetLockCount() > 0)
+			return S_FALSE;
+
+		if(HOST_PROCESS_STILL_RUNNING)
+			return S_FALSE;
+
+		CefShutdown();
+
+		return S_OK;
+	}```
+
+Also, I initialize CEF only once using a static class variable:
+
+```C++
+
+bool CWebKitXCtrl::InitCEF()
+{
+	if(!CWebKitXCtrl::CEF_INITIALIZED)
+	{
+		CefSettings settings;
+		settings.multi_threaded_message_loop			= true;
+		settings.graphics_implementation				= ANGLE_IN_PROCESS; // H/W Accelerated Canvas & WebGL
+		settings.pack_loading_disabled					= true;
+		settings.auto_detect_proxy_settings_enabled		= true;
+		settings.uncaught_exception_stack_size			= 10;			
+
+		CefRefPtr<CefApp> app;
+		CWebKitXCtrl::CEF_INITIALIZED = CefInitialize(settings, app);		
+	}
+	return CWebKitXCtrl::CEF_INITIALIZED;
+};
+```
 
 ActiveX Interface
 ------------------

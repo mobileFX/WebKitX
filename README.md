@@ -1,5 +1,7 @@
 ![](WebKitX.png)
 
+[<img src="donate.png">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MGVFWZBWKFTPN)
+
 WebKitX
 =======
 

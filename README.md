@@ -61,9 +61,45 @@ bool CWebKitXCtrl::InitCEF()
 };
 ```
 
+Visual Basic 6 Sample
+---------------------
+
+![](cef_on_vb6.jpeg)
+
+The Visual Basic sample project simply demonstrates how to use WebKitX API.
+
+```VB6
+Private Sub Form_Resize()
+    On Error Resume Next
+    WebKitX1.Move 0, 0, ScaleWidth, ScaleHeight
+    Err.Clear
+End Sub
+
+Private Sub mnuEditable_Click()
+    mnuEditable.Checked = Not mnuEditable.Checked
+    If mnuEditable.Checked Then
+        WebKitX1.Edit
+    Else
+        WebKitX1.Preview
+    End If
+End Sub
+
+Private Sub mnuGet_Click()
+    Debug.Print WebKitX1.HTML
+End Sub
+
+Private Sub mnuOpen_Click()
+    WebKitX1.OpenURL "http://www.mobilefx.com"
+End Sub
+
+Private Sub mnuPut_Click()
+    WebKitX1.HTML = "<html><body>Hello CEF</body></html>"
+End Sub
+```
+
 ActiveX Interface
 ------------------
-I have implemented a small robust API on the ActiveX as an example. The API functions open a URL, put/get HTML and enable/disable HTML5 editing. The API demonstrates all CEF-related bizzares and how to do things properly since some CEF functions are asynchronous and must run of certain CEF threads before the ActiveX can get the results on its main thread and pass it to VB6. It should be very easy to extend my code and add your own functions.
+I have implemented a small robust API on the ActiveX as an example. The API functions open a URL, put/get HTML and enable/disable HTML5 editing. The API demonstrates all CEF-related bizzares and how to do things properly; Some CEF functions are asynchronous and must run of certain CEF threads before the ActiveX can get the results on its main thread, and pass it to VB6. It should be very easy to extend my code and add your own functions.
 
 Future Work
 -----------

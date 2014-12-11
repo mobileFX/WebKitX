@@ -33,6 +33,8 @@
 *.suo
 *.sdf
 
+
+
 !/lib/Release/libcef.lib
 !/lib/Release/libcef_dll_wrapper.lib
 
@@ -45,6 +47,6 @@
 !/Release/d3dx9_43.dll
 !/Release/WebKitX.ocx
 
-/Release
+/Release*
 
 !.gitignore

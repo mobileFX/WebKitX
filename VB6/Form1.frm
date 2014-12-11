@@ -3,20 +3,20 @@ Object = "{7493F856-8B5B-47C2-8336-71D5CA8433D9}#1.0#0"; "WebKitX.ocx"
 Begin VB.Form Form1 
    AutoRedraw      =   -1  'True
    Caption         =   "Form1"
-   ClientHeight    =   8760
+   ClientHeight    =   5385
    ClientLeft      =   225
    ClientTop       =   855
-   ClientWidth     =   10305
+   ClientWidth     =   7575
    LinkTopic       =   "Form1"
-   ScaleHeight     =   584
+   ScaleHeight     =   359
    ScaleMode       =   3  'Pixel
-   ScaleWidth      =   687
+   ScaleWidth      =   505
    StartUpPosition =   3  'Windows Default
    Begin WebKitXLib.WebKitX WebKitX1 
       Height          =   4830
-      Left            =   555
+      Left            =   315
       TabIndex        =   0
-      Top             =   390
+      Top             =   120
       Width           =   6825
       _Version        =   65536
       _ExtentX        =   12039
@@ -48,12 +48,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
-
-Private Sub Form_Load()
-    On Error Resume Next
-    
-    Err.Clear
-End Sub
 
 Private Sub Form_Resize()
     On Error Resume Next

@@ -20,7 +20,7 @@ The idea of wrapping CEF into an ActiveX is very simple:
 
 * You create a MFC/ATL ActiveX Control class that will create the CefBrowser object. MFC ActiveX controls inherit from COleControl which in turn inherits from CWnd and therefore have a hWnd window handle. We wait until the first paint of the control and create the CefBrowser passing to it the hWnd handle of the control.
 
->> The class must inherit from COleControl and CefApp IN THAT ORDER - IT IS IMPORTANT!!
+> The class must inherit from COleControl and CefApp IN THAT ORDER - IT IS IMPORTANT!!
 
 ```C++
 class CWebKitXCtrl : public COleControl, public CefApp
@@ -36,7 +36,7 @@ class WebKitHandler : public CefClient, public CefLifeSpanHandler
 }
 ```
 
->> The trick for successfully wrapping CEF into an ActiveX is two use two classes, one for the actual ActiveX Control and one for the Browser handler. The reason is that CEF classes implement some short of reference counting mechanism and if you combine them it creates a reference counting mess.
+> The trick for successfully wrapping CEF into an ActiveX is two use two classes, one for the actual ActiveX Control and one for the Browser handler. The reason is that CEF classes implement some short of reference counting mechanism and if you combine them it creates a reference counting mess.
 
 The Problem
 -----------

@@ -7,7 +7,20 @@ This is a Visual Studio 2010 SP1 MFC ActiveX Project that wraps Chromium Embedde
 
 Background
 ----------
+
 Purpose of this project was to create a light-weight CEF ActiveX wrapper for CEF3 but due to several problems with multithreading and VB6, I decided to wrap CEF1 first and then move to CEF3 slowly.
+
+CEF is the acronym for Chromium Embedded Framework, which encapsulates WebKit HTML5 Renderer and Google V8 JavaScript engine. Currently there are two versions available, CEF1 (obsolete) and CEF3. 
+
+The main architectural difference between CEF1 and CEF3 is that CEF3 is using using sub-processes (.exe files) mainly for rendering, and synchronizes all processes using IPC. This adds some process-management complexity wrapping it into an ActiveX and for that reason I decided to deal with CEF1 first.
+
+CEF has two static libraries: libcef.lib and libcef_dll_wrapper.lib. Both static libraries must be compiles with /MD before you can successfully link them with an ActiveX DLL project. I have added some comments about it at the end of this doc.
+
+The idea of wrapping CEF into an ActiveX is very simple:
+
+* You create a MFC/ATL ActiveX Control class that will create the CefBrowser object. MFC ActiveX controls inherit from COleControl which in turn inherits from CWnd and therefore have a hWnd window handle. We wait until the first paint of the control and create the CefBrowser passing to it the hWnd handle of the control.
+
+* We also create WebKitHandler, a simple CefClient descendant class that will be receiving callbacks from CefBrowser. There is a vast array of callback classes you can multiple-inherit WebKitHandler from, depending on the extend of control you need.
 
 The Problem
 -----------

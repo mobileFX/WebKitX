@@ -4,6 +4,7 @@
 // or project specific include files that are used frequently,
 // but are changed infrequently
 
+#define _ATL_APARTMENT_THREADED 
 #define _CRT_SECURE_NO_WARNINGS 1
 
 #ifndef VC_EXTRALEAN
@@ -48,3 +49,7 @@
 
 void debugPrint(const char* fmt, ...);
 std::string ws2s(const std::wstring& wstr);
+
+#include <atlbase.h>
+#include <atlcom.h>
+#include <atlctl.h>

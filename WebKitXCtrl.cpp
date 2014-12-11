@@ -10,8 +10,9 @@
 
 IMPLEMENT_DYNCREATE(CWebKitXCtrl, COleControl)
 
-CWebKitXCtrl* CWebKitXCtrl::g_instnace;
-extern CefRefPtr<WebKitHandler> g_handler;
+CWebKitXCtrl* CWebKitXCtrl::g_instnace = NULL;
+extern CefRefPtr<WebKitHandler> g_handler = NULL;
+bool CWebKitXCtrl::CEF_INITIALIZED = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Message map
@@ -69,7 +70,12 @@ BOOL CWebKitXCtrl::CWebKitXCtrlFactory::UpdateRegistry(BOOL bRegister)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-CWebKitXCtrl::CWebKitXCtrl() :	m_Browser(NULL), m_MainHwnd(NULL), m_BrowserHwnd(NULL), SIG_READY(NULL)
+CWebKitXCtrl::CWebKitXCtrl() :	
+	m_Browser(NULL), 
+	m_MainHwnd(NULL), 
+	m_BrowserHwnd(NULL), 
+	SIG_READY(NULL),
+	CEF_BROWSER_CREATED(false)
 {
 	InitializeIIDs(&IID_DWebKitX, &IID_DWebKitXEvents);	
 	g_instnace = this;		
@@ -91,7 +97,8 @@ CWebKitXCtrl::~CWebKitXCtrl()
 		// Here is the problem with this solution, once CefShutdown() 
 		// is called the ActiveX cannot reinitialize CEF. If we don't 
 		// call it then some thread is not released resulting to crash.
-		CefShutdown();			
+		
+		//CefShutdown();			
 
 		// Ideally we should find a way to avoid CefShutdown/CefInitialize
 		// and properly dispose CEF objects and threads that assume they
@@ -104,12 +111,12 @@ CWebKitXCtrl::~CWebKitXCtrl()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CWebKitXCtrl::OnDraw(CDC* pdc, const CRect& rcBounds, const CRect& rcInvalid)
 {
-	if(!pdc) return;	
-	static bool created = false;
-	if(AmbientUserMode() && !created && m_hWnd)
+	if(!pdc) return;		
+	if(AmbientUserMode() && !CEF_BROWSER_CREATED && m_hWnd)
 	{		
-		created = true;		
-		CreateCEF();		
+		CEF_BROWSER_CREATED = true;		
+		if(InitCEF())
+			CreateCEFBrowser();	
 	}
 	DoSuperclassPaint(pdc, rcBounds);
 	pdc->FillRect(rcBounds, CBrush::FromHandle((HBRUSH)GetStockObject(WHITE_BRUSH)));
@@ -117,79 +124,91 @@ void CWebKitXCtrl::OnDraw(CDC* pdc, const CRect& rcBounds, const CRect& rcInvali
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef CEF_VERSION_1
-void CWebKitXCtrl::CreateCEF()
+
+bool CWebKitXCtrl::InitCEF()
 {
-	CefSettings settings;
-	settings.multi_threaded_message_loop			= true;
-	settings.graphics_implementation				= ANGLE_IN_PROCESS; // H/W Accelerated Canvas & WebGL
-	settings.pack_loading_disabled					= true;
-	settings.auto_detect_proxy_settings_enabled		= true;
-	settings.uncaught_exception_stack_size			= 10;			
+	if(!CWebKitXCtrl::CEF_INITIALIZED)
+	{
+		CefSettings settings;
+		settings.multi_threaded_message_loop			= true;
+		settings.graphics_implementation				= ANGLE_IN_PROCESS; // H/W Accelerated Canvas & WebGL
+		settings.pack_loading_disabled					= true;
+		settings.auto_detect_proxy_settings_enabled		= true;
+		settings.uncaught_exception_stack_size			= 10;			
 
-	CefRefPtr<CefApp> app;	
+		CefRefPtr<CefApp> app;
+		CWebKitXCtrl::CEF_INITIALIZED = CefInitialize(settings, app);		
+	}
+	return CWebKitXCtrl::CEF_INITIALIZED;
+};
 
-	if(CefInitialize(settings, app))
-	{			
-		RECT rect;
-		::GetClientRect(m_hWnd, &rect);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void  CWebKitXCtrl::QuitCEF()
+{
+}
 
-		CefWindowInfo info;	
-		info.SetAsChild(m_hWnd, rect);		
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CWebKitXCtrl::CreateCEFBrowser()
+{	
+	RECT rect;
+	::GetClientRect(m_hWnd, &rect);
 
-		CefBrowserSettings browser_settings;
+	CefWindowInfo info;	
+	info.SetAsChild(m_hWnd, rect);		
 
-		browser_settings.accelerated_2d_canvas_disabled = false;
-		browser_settings.accelerated_compositing_enabled = true;
-		browser_settings.accelerated_filters_disabled = false;
-		browser_settings.accelerated_layers_disabled = false;
-		browser_settings.accelerated_painting_disabled = false;
-		browser_settings.accelerated_plugins_disabled = false;
-		browser_settings.accelerated_video_disabled = false;
-		browser_settings.animation_frame_rate = 40;
-		browser_settings.application_cache_disabled = true;
-		browser_settings.author_and_user_styles_disabled = false;			
-		browser_settings.databases_disabled = false;
-		browser_settings.developer_tools_disabled = false;
-		browser_settings.dom_paste_disabled = false;
-		browser_settings.drag_drop_disabled = false;
-		browser_settings.encoding_detector_enabled = true;
-		browser_settings.file_access_from_file_urls_allowed = true;
-		browser_settings.history_disabled = true;
-		browser_settings.hyperlink_auditing_disabled = true;
-		browser_settings.site_specific_quirks_disabled = true;
-		browser_settings.shrink_standalone_images_to_fit = false;
-		browser_settings.tab_to_links_disabled = false;
-		browser_settings.text_area_resize_disabled = false;
-		browser_settings.web_security_disabled = true;
-		browser_settings.webgl_disabled = false;
-		browser_settings.caret_browsing_enabled = false;
+	CefBrowserSettings browser_settings;
 
-		// FOR HTML5 EDITOR MODE YOU BETTER DISABLE JAVASCRIPT AND PLUGINS
-		browser_settings.java_disabled = true;
-		browser_settings.javascript_access_clipboard_disallowed = true;
-		browser_settings.javascript_close_windows_disallowed = true;
-		browser_settings.javascript_disabled = true;
-		browser_settings.javascript_open_windows_disallowed = true;
-		browser_settings.page_cache_disabled = true;
-		browser_settings.plugins_disabled = true;		
+	browser_settings.accelerated_2d_canvas_disabled = false;
+	browser_settings.accelerated_compositing_enabled = true;
+	browser_settings.accelerated_filters_disabled = false;
+	browser_settings.accelerated_layers_disabled = false;
+	browser_settings.accelerated_painting_disabled = false;
+	browser_settings.accelerated_plugins_disabled = false;
+	browser_settings.accelerated_video_disabled = false;
+	browser_settings.animation_frame_rate = 40;
+	browser_settings.application_cache_disabled = true;
+	browser_settings.author_and_user_styles_disabled = false;			
+	browser_settings.databases_disabled = false;
+	browser_settings.developer_tools_disabled = false;
+	browser_settings.dom_paste_disabled = false;
+	browser_settings.drag_drop_disabled = false;
+	browser_settings.encoding_detector_enabled = true;
+	browser_settings.file_access_from_file_urls_allowed = true;
+	browser_settings.history_disabled = true;
+	browser_settings.hyperlink_auditing_disabled = true;
+	browser_settings.site_specific_quirks_disabled = true;
+	browser_settings.shrink_standalone_images_to_fit = false;
+	browser_settings.tab_to_links_disabled = false;
+	browser_settings.text_area_resize_disabled = false;
+	browser_settings.web_security_disabled = true;
+	browser_settings.webgl_disabled = false;
+	browser_settings.caret_browsing_enabled = false;
 
-		g_handler = new WebKitHandler(this);
+	// FOR HTML5 EDITOR MODE YOU BETTER DISABLE JAVASCRIPT AND PLUGINS
+	browser_settings.java_disabled = true;
+	browser_settings.javascript_access_clipboard_disallowed = true;
+	browser_settings.javascript_close_windows_disallowed = true;
+	browser_settings.javascript_disabled = true;
+	browser_settings.javascript_open_windows_disallowed = true;
+	browser_settings.page_cache_disabled = true;
+	browser_settings.plugins_disabled = true;		
 
-		if(CefBrowser::CreateBrowser(info,	static_cast<CefRefPtr<CefClient>>(g_handler), "http://www.google.com", browser_settings))
-		{				
-			//SetTimer(IDT_TIMER, 1, TimerProc);
-			//CefRunMessageLoop();				
-			SIG_READY = CreateEvent(NULL, true, false, NULL);
-		}
+	g_handler = new WebKitHandler(this);
+
+	if(CefBrowser::CreateBrowser(info,	static_cast<CefRefPtr<CefClient>>(g_handler), "http://www.google.com", browser_settings))
+	{				
+		SIG_READY = CreateEvent(NULL, true, false, NULL);
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::DestroyCEF()
+void CWebKitXCtrl::DestroyCEFBrowser()
 {
-	//KillTimer(IDT_TIMER);
-	m_Browser->StopLoad();
-	m_Browser->ParentWindowWillClose();
+	if(m_Browser)
+	{
+		m_Browser->StopLoad();
+		m_Browser->ParentWindowWillClose();
+	}
 }
 
 #endif

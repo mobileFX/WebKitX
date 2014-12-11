@@ -34,6 +34,6 @@ void WebKitHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 	REQUIRE_UI_THREAD();
 	if(control->m_BrowserHwnd == WINDOW_HANDLE(browser))
 	{
-		control->DestroyCEF();
+		control->DestroyCEFBrowser();
 	}	
 }

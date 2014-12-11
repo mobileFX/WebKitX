@@ -26,7 +26,7 @@ class CWebKitXCtrl :
 	DECLARE_DYNCREATE(CWebKitXCtrl)
 
 public:
-	
+		
 	static CWebKitXCtrl* g_instnace;
 	CefRefPtr<WebKitHandler> g_handler;	
 	HANDLE SIG_READY;
@@ -41,8 +41,13 @@ public:
 	CWebKitXCtrl();
 	~CWebKitXCtrl();
 
-	void CreateCEF();
-	void DestroyCEF();
+	// CEF Life Management
+	static bool CEF_INITIALIZED;
+	static bool InitCEF();
+	static void QuitCEF();
+	bool CEF_BROWSER_CREATED;
+	void CreateCEFBrowser();
+	void DestroyCEFBrowser();
 
 	#ifdef CEF_VERSION_3
 	virtual void OnContextInitialized() OVERRIDE;

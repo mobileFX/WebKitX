@@ -13,14 +13,14 @@ Begin VB.Form Form1
    ScaleWidth      =   687
    StartUpPosition =   3  'Windows Default
    Begin WebKitXLib.WebKitX WebKitX1 
-      Height          =   3870
+      Height          =   4830
       Left            =   555
       TabIndex        =   0
       Top             =   390
-      Width           =   5010
+      Width           =   6825
       _Version        =   65536
-      _ExtentX        =   8837
-      _ExtentY        =   6826
+      _ExtentX        =   12039
+      _ExtentY        =   8520
       _StockProps     =   0
    End
    Begin VB.Menu mnuFile 

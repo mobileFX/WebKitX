@@ -141,11 +141,24 @@ I have included pre-built CEF1 and CEF3 libraries and their required DLLS that a
 Notes about compiling CEF1|3 for ActiveX
 ----------------------------------------
 If you decide to compile CEF yourself you will need to do the following:
+
 1. Disable all C++ Compiler Warnings and remove the Treat Warnings as Errors
+
 2. Change in C++ Code Generation the Threading Model from /MT (for .exe) to /MD (for .DLL)
 
 Contact me if you need any help.
 
+Author
+------
 Elias Politakis,
 mobileFX CTO/Partner.
+
+Contribute / Donate
+-------------------
+If this project is useful for you, you can help me sustain it either by contributing or by donating with Paypal.
+[<img src="http://www.google.com.au/images/nav_logo7.png">](http://google.com.au/)
+![](donate.png)
+
+
+
 

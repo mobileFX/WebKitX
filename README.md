@@ -201,12 +201,9 @@ void CWebKitXCtrl::ExecuteAddEventEx(std::string elementID, std::string eventTyp
 		std::string vbObjectFunctionName;
 	};
 
-	ATL::CComPtr<IUnknown> UK;
-
 	T handler;
 	handler.vbObject = vbObject;
-	handler.vbObjectFunctionName = vbObjectFunctionName;
-	vbObject->AddRef();
+	handler.vbObjectFunctionName = vbObjectFunctionName;	
 
 	debugPrint("addEventListenerEx(%s, %s, %d, %s)\n", elementID.c_str(), eventType.c_str(), (LONG)handler.vbObject, handler.vbObjectFunctionName.c_str());
 
@@ -264,6 +261,7 @@ void CWebKitXCtrl::ExecuteAddEventEx(std::string elementID, std::string eventTyp
 	g_instnace->m_Browser->GetFocusedFrame()->VisitDOM(new Visitor(elementID, eventType, handler));
 }
 ```
+
 Using a template you can define custome event callback signatures like this:
 
 ```C++

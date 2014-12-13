@@ -83,11 +83,11 @@ Private Sub WebKitX1_OnCreate()
 End Sub
 
 Private Sub WebKitX1_OnReady()
-    'WebKitX1.addEventListener "btn1", "click", AddressOf OnClick
+    WebKitX1.addEventListener "btn1", "click", AddressOf Module1.OnClick
     WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick"
 End Sub
 
 Public Function OnClick() As Long
-    MsgBox "Clicked"
+    MsgBox "Clicked - handled by class"
 End Function
 

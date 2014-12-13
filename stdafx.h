@@ -47,6 +47,12 @@
 #include <string>
 #include <process.h>
 
+#include <atlbase.h>
+#include <atlcom.h>
+#include <initguid.h>
+#include <AtlConv.h>
+#include <atlcomcli.h>
+
 void debugPrint(const char* fmt, ...);
 std::string ws2s(const std::wstring& wstr);
 

@@ -14,7 +14,7 @@ Begin VB.Form Form1
    StartUpPosition =   3  'Windows Default
    Begin WebKitXLib.WebKitX WebKitX1 
       Height          =   4830
-      Left            =   315
+      Left            =   285
       TabIndex        =   0
       Top             =   120
       Width           =   6825
@@ -49,6 +49,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+Private Const S_HTML = "<html><body><button id='btn1'>Hello CEF</button></body></html>"
+
 Private Sub Form_Resize()
     On Error Resume Next
     WebKitX1.Move 0, 0, ScaleWidth, ScaleHeight
@@ -73,5 +75,19 @@ Private Sub mnuOpen_Click()
 End Sub
 
 Private Sub mnuPut_Click()
-    WebKitX1.HTML = "<html><body>Hello CEF</body></html>"
+    WebKitX1.HTML = S_HTML
 End Sub
+
+Private Sub WebKitX1_OnCreate()
+    WebKitX1.HTML = S_HTML
+End Sub
+
+Private Sub WebKitX1_OnReady()
+    'WebKitX1.addEventListener "btn1", "click", AddressOf OnClick
+    WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick"
+End Sub
+
+Public Function OnClick() As Long
+    MsgBox "Clicked"
+End Function
+

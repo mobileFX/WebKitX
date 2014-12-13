@@ -26,6 +26,10 @@ library WebKitXLib
 			[id(1)] void OpenURL([in] BSTR URL);			
 			[id(3)] void Edit(void);
 			[id(4)] void Preview(void);
+			[id(5)] VARIANT_BOOL Modified(void);
+			[id(6)] void Reload(void);
+			[id(7)] void addEventListener([in] BSTR Selector,[in] BSTR Event,[in] LONG AddressOfEventHandler);
+			[id(8)] void addEventListenerEx([in] BSTR Selector, [in] BSTR Event, [in] IDispatch* vbObject, [in] BSTR vbObjectFunctionName);
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,6 +43,8 @@ library WebKitXLib
 			//  Event interface has no properties
 
 		methods:
+			[id(1)] void OnReady(void);			
+			[id(2)] void OnCreate();
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

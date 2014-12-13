@@ -48,8 +48,8 @@ As a result of this problem, the ActiveX would work perfectly only once and next
 
 This behavior is related with CEF assuming that runs inside an .EXE and not inside an OLE Host. **CefShutdown()** must be called in order to terminate several background threads, that if not terminated crash the ActiveX when it unloads.
 
-The Hack
---------
+The DllCanUnloadNow() Hack
+--------------------------
 
 The hack I decided to do was to prevent the ActiveX .OCX file from unloading until the host process actually dies. To do so I return S_FALSE on **DllCanUnloadNow()**.
 

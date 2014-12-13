@@ -176,7 +176,9 @@ Private Sub WebKitX1_OnReady()
 End Sub
 ```
 
-The following code demonstrates the proper way to attach a DOM event. You need to execute the attachment code using **CefPostTask** in the UI CEF thread and you need two helper classes to do so: a **CefDOMVisitor** for asynchronous access to the DOM and **CefDOMEventListener** for handling the event and performing the callback.
+The following code demonstrates the proper way to attach a DOM event. You need to execute the attachment code using **CefPostTask** in the CEF UI Thread, and you need two helper classes to do so: a **CefDOMVisitor** for asynchronous access to the DOM and **CefDOMEventListener** for handling the event and performing the callback.
+
+Remember, VB6 functions are __stdcall and VB6 objects are COM objects. In the first case we need to cast `AddressOf <handler>` to `typedef LONG (__stdcall *VISUAL_BASIC_6_FN_PTR)(LONG, LONG);` and in the second case we need to use 	`IDispatch` interface.
 
 ```C++
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -260,6 +262,30 @@ void CWebKitXCtrl::ExecuteAddEventEx(std::string elementID, std::string eventTyp
 	};
 
 	g_instnace->m_Browser->GetFocusedFrame()->VisitDOM(new Visitor(elementID, eventType, handler));
+}
+```
+Using a template you can define custome event callback signatures like this:
+
+```C++
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Add Event Listener to Visual Basic 6 Global Function Callback
+void CWebKitXCtrl::addEventListener(LPCTSTR Selector, LPCTSTR Event, LONG AddressOfEventHandler)
+{
+	USES_CONVERSION;
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());		
+	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteAddEvent, std::string(T2A(Selector)), std::string(T2A(Event)), AddressOfEventHandler));	
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CWebKitXCtrl::ExecuteAddEvent(std::string elementID, std::string eventType, LONG AddressOfEventHandler)
+{	
+	VISUAL_BASIC_6_FN_PTR vbFunc = (VISUAL_BASIC_6_FN_PTR)AddressOfEventHandler;	
+	g_instnace->__addEventHandler<VISUAL_BASIC_6_FN_PTR>(elementID, eventType, vbFunc); 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template<typename T> void CWebKitXCtrl::__addEventHandler(std::string elementID, std::string eventType, T handler)
+{
 }
 ```
 

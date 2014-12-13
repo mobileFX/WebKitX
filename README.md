@@ -178,7 +178,7 @@ End Sub
 
 The following code demonstrates the proper way to attach a DOM event. You need to execute the attachment code using **CefPostTask** in the CEF UI Thread, and you need two helper classes to do so: a **CefDOMVisitor** for asynchronous access to the DOM and **CefDOMEventListener** for handling the event and performing the callback.
 
-Remember, VB6 functions are __stdcall and VB6 objects are COM objects. In the first case we need to cast `AddressOf <handler>` to `typedef LONG (__stdcall *VISUAL_BASIC_6_FN_PTR)(LONG, LONG);` and in the second case we need to use 	`IDispatch` interface.
+Remember, VB6 functions are __stdcall and VB6 objects are COM objects. In the first case we need to cast `AddressOf <handler>` to `typedef LONG (__stdcall *VISUAL_BASIC_6_FN_PTR)();` and in the second case we need to use 	`IDispatch` interface.
 
 ```C++
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

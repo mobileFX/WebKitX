@@ -100,6 +100,10 @@ Visual Basic 6 Sample
 The Visual Basic sample project simply demonstrates how to use WebKitX API.
 
 ```VB6
+Option Explicit
+
+Private Const S_HTML = "<html><body><button id='btn1'>Hello CEF</button></body></html>"
+
 Private Sub Form_Resize()
     On Error Resume Next
     WebKitX1.Move 0, 0, ScaleWidth, ScaleHeight
@@ -124,13 +128,140 @@ Private Sub mnuOpen_Click()
 End Sub
 
 Private Sub mnuPut_Click()
-    WebKitX1.HTML = "<html><body>Hello CEF</body></html>"
+    WebKitX1.HTML = S_HTML
 End Sub
+
+Private Sub WebKitX1_OnCreate()
+    WebKitX1.HTML = S_HTML
+End Sub
+
+Private Sub WebKitX1_OnReady()
+    WebKitX1.addEventListener "btn1", "click", AddressOf Module1.OnClick
+    WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick"
+End Sub
+
+Public Function OnClick() As Long
+    MsgBox "Clicked - handled by class"
+End Function
 ```
 
 ActiveX Interface
 ------------------
 I have implemented a small robust API on the ActiveX as an example. The API functions open a URL, put/get HTML and enable/disable HTML5 editing. The API demonstrates all CEF-related bizzares and how to do things properly; Some CEF functions are **asynchronous** and must run of certain CEF threads before the ActiveX can get the results on its main thread, and pass it to VB6. It should be very easy to extend my code and add your own functions.
+
+Events
+------
+
+An important note about ActiveX Events is that they must be fired from the main thread and not from CEF thread. For that I decided to use Timers.
+
+```C++
+	void FireOnReady() { SetTimer(eventidOnReady, 10, OnReadyTimerProc); }
+	static void CALLBACK OnReadyTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnReadyTimer(); }
+	void OnReadyTimer() { KillTimer(eventidOnReady); OnReady(); }
+
+	void FireOnCreate() { SetTimer(eventidOnCreate, 10, OnCreateTimerProc); }	
+	static void CALLBACK OnCreateTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnCreateTimer(); }	
+	void OnCreateTimer() { KillTimer(eventidOnCreate); OnCreate(); }
+```
+
+addEventListener
+----------------
+
+An interesting implementation is attaching DOM events and using VB6 class functions or global module functions for callbacks.
+
+```VB6
+Private Sub WebKitX1_OnReady()
+    WebKitX1.addEventListener "btn1", "click", AddressOf Module1.OnClick
+    WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick"
+End Sub
+```
+
+The following code demonstrates the proper way to attach a DOM event. You need to execute the attachment code using **CefPostTask** in the UI CEF thread and you need two helper classes to do so: a **CefDOMVisitor** for asynchronous access to the DOM and **CefDOMEventListener** for handling the event and performing the callback.
+
+```C++
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Add Event Listener to Visual Basic 6 Class Public Function
+void CWebKitXCtrl::addEventListenerEx(LPCTSTR Selector, LPCTSTR Event, IDispatch* vbObject, LPCTSTR vbObjectFunctionName)
+{
+	USES_CONVERSION;
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteAddEventEx, std::string(T2A(Selector)), std::string(T2A(Event)), vbObject, std::string(T2A(vbObjectFunctionName))));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CWebKitXCtrl::ExecuteAddEventEx(std::string elementID, std::string eventType, IDispatch* vbObject, std::string vbObjectFunctionName)
+{		
+	REQUIRE_UI_THREAD();	
+
+	struct T
+	{
+		IDispatch* vbObject;
+		std::string vbObjectFunctionName;
+	};
+
+	ATL::CComPtr<IUnknown> UK;
+
+	T handler;
+	handler.vbObject = vbObject;
+	handler.vbObjectFunctionName = vbObjectFunctionName;
+	vbObject->AddRef();
+
+	debugPrint("addEventListenerEx(%s, %s, %d, %s)\n", elementID.c_str(), eventType.c_str(), (LONG)handler.vbObject, handler.vbObjectFunctionName.c_str());
+
+	//------------------------------------------------------------------------------------
+	class Listener : public CefDOMEventListener 
+	{
+	public:		
+		T handler;
+		Listener(T handler)
+		{
+			this->handler = handler;			
+		}
+		virtual void HandleEvent(CefRefPtr<CefDOMEvent> event) 
+		{
+			USES_CONVERSION;
+			CefRefPtr<CefDOMNode> element = event->GetTarget();
+			DISPID disp;
+			LPOLESTR fnName = A2OLE(this->handler.vbObjectFunctionName.c_str());
+			debugPrint("%s\n", fnName);
+			HRESULT hr = this->handler.vbObject->GetIDsOfNames(IID_NULL, &fnName, 1, LOCALE_SYSTEM_DEFAULT, &disp);
+			if(SUCCEEDED(hr))
+			{
+				DISPPARAMS dispparamsNoArgs;			
+				dispparamsNoArgs.cArgs=0;
+				dispparamsNoArgs.cNamedArgs=0;
+				this->handler.vbObject->Invoke(disp, IID_NULL, LOCALE_SYSTEM_DEFAULT, DISPATCH_METHOD, &dispparamsNoArgs, NULL, NULL, NULL);
+			}
+		}
+		IMPLEMENT_REFCOUNTING(Listener);	
+	};
+
+	//------------------------------------------------------------------------------------
+	class Visitor : public CefDOMVisitor 
+	{
+	public:
+		T handler;
+		std::string elementID;
+		std::string eventType;
+		Visitor(std::string elementID, std::string eventType, T handler) 
+		{
+			this->handler = handler;
+			this->elementID = elementID;
+			this->eventType = eventType;
+		}
+		virtual void Visit(CefRefPtr<CefDOMDocument> document) 	OVERRIDE
+		{
+			CefRefPtr<CefDOMEventListener> listener(new Listener(this->handler));
+			CefRefPtr<CefDOMNode> element = document->GetElementById(this->elementID);
+			if(element || element.get())
+				element->AddEventListener(this->eventType, listener, false);
+		}
+		IMPLEMENT_REFCOUNTING(Visitor);
+	};
+
+	g_instnace->m_Browser->GetFocusedFrame()->VisitDOM(new Visitor(elementID, eventType, handler));
+}
+```
 
 Future Work
 -----------

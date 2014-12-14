@@ -294,8 +294,16 @@ Future Work
 -----------
 I plan to integrate CEF3 but my goal is to create an **HTML5 WYSIWYG Editor** for my Coconut2D Studio IDE project, so I if CEF3 is a pain to integrate I won't bother too much.
 
-DLLs and Libraries
-------------------
+Notes about compiling CEF1|3 for ActiveX
+----------------------------------------
+If you decide to compile CEF yourself you will need to do the following:
+
+1. Disable all C++ **Compiler Warnings** and remove the **Treat Warnings as Errors**.
+
+2. Change in C++ Code Generation the Threading Model from /MT (for .exe) to **/MD** (for .DLL)
+
+CEF DLLs and Libraries
+----------------------
 I have included pre-built CEF1 and CEF3 libraries and their required DLLS that are needed only if you enable Hardware Accelerated Graphics (settings.graphics_implementation = ANGLE_IN_PROCESS). In theory if you choose a software graphics engine then the DLLs are not required.
 
 | Folder                | Description                                                                              |
@@ -312,14 +320,6 @@ I have included pre-built CEF1 and CEF3 libraries and their required DLLS that a
 | \CEF3Process          | CEF3 Process                                                                             |
 | \VB6                  | Visual Basic 6 Sample                                                                    |
 
-
-Notes about compiling CEF1|3 for ActiveX
-----------------------------------------
-If you decide to compile CEF yourself you will need to do the following:
-
-1. Disable all C++ **Compiler Warnings** and remove the **Treat Warnings as Errors**.
-
-2. Change in C++ Code Generation the Threading Model from /MT (for .exe) to **/MD** (for .DLL)
 
 Contact me if you need any help.
 

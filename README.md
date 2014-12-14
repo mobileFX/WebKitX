@@ -99,7 +99,7 @@ I have implemented a small robust API on the ActiveX as an example. The API func
 ActiveX Events
 --------------
 
-An important note about ActiveX Events (COM Connection Points) is that they must be fired from the main thread and not from CEF thread. I am using Timets for firing events and it seems to be working ok.
+An important note about ActiveX Events (COM Connection Points) is that they must be fired from the main thread and not from CEF thread. I am using Timets for firing events and it seems to be working ok. Note that ActiveX Events must not be re-entrant or unexpected failures and crashes might happen. Ideally you should use a static variable to sync re-entrancy.
 
 ```C++
 	void FireOnReady() { SetTimer(eventidOnReady, 10, OnReadyTimerProc); }

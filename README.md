@@ -313,10 +313,6 @@ I have included pre-built CEF1 and CEF3 libraries and their required DLLS that a
 | \VB6                  | Visual Basic 6 Sample                                                                    |
 
 
-```text
-
-```
-
 Notes about compiling CEF1|3 for ActiveX
 ----------------------------------------
 If you decide to compile CEF yourself you will need to do the following:

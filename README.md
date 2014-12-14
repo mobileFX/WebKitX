@@ -299,7 +299,7 @@ DLLs and Libraries
 I have included pre-built CEF1 and CEF3 libraries and their required DLLS that are needed only if you enable Hardware Accelerated Graphics (settings.graphics_implementation = ANGLE_IN_PROCESS). In theory if you choose a software graphics engine then the DLLs are not required.
 
 | Folder                | Description                                                 |
-|-----------------------|:-----------------------------------------------------------:|
+|-----------------------|-------------------------------------------------------------|
 | \CEF					|                                                             |
 | \CEF\CEF1             | CEF1 Root                                                   |
 | \CEF\CEF1\DLLs        | Required Runtime DLLs and Resources                         |

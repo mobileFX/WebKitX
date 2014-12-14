@@ -298,6 +298,25 @@ DLLs and Libraries
 ------------------
 I have included pre-built CEF1 and CEF3 libraries and their required DLLS that are needed only if you enable Hardware Accelerated Graphics (settings.graphics_implementation = ANGLE_IN_PROCESS). In theory if you choose a software graphics engine then the DLLs are not required.
 
+| Folder                | Description                                                 |
+|-----------------------|-------------------------------------------------------------|
+| \CEF					|                                                             |
+|     \CEF1             | CEF1 Root                                                   |
+| 	       \DLLs        | Required Runtime DLLs and Resources                         |
+| 	       \include     | Include Files                                               |
+| 	       \lib         | Link Libraries                                              |
+|     \CEF3             | CEF3 Root                                                   |
+| 	       \DLLs        | Required Runtime DLLs and Resources                         |                               
+| 	       \include     | Include Files                                               |                                      
+| 	       \lib         | Link Libraries                                              |
+| \CEF3Process          | CEF3 Process                                                |
+| \VB6                  | Visual Basic 6 Sample                                       |
+
+
+```text
+
+```
+
 Notes about compiling CEF1|3 for ActiveX
 ----------------------------------------
 If you decide to compile CEF yourself you will need to do the following:

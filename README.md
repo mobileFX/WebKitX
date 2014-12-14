@@ -102,13 +102,13 @@ ActiveX Events
 An important note about ActiveX Events (COM Connection Points) is that they must be fired from the main thread and not from CEF thread. I am using Timers for firing events and it seems to be working ok. Note that ActiveX Events must not be re-entrant or unexpected failures and crashes might happen. Ideally you should use a static variable to sync re-entrancy.
 
 ```C++
-	void FireOnReady() { SetTimer(eventidOnReady, 10, OnReadyTimerProc); }
-	static void CALLBACK OnReadyTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnReadyTimer(); }
-	void OnReadyTimer() { KillTimer(eventidOnReady); OnReady(); }
+void FireOnReady() { SetTimer(eventidOnReady, 10, OnReadyTimerProc); }
+static void CALLBACK OnReadyTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnReadyTimer(); }
+void OnReadyTimer() { KillTimer(eventidOnReady); OnReady(); }
 
-	void FireOnCreate() { SetTimer(eventidOnCreate, 10, OnCreateTimerProc); }	
-	static void CALLBACK OnCreateTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnCreateTimer(); }	
-	void OnCreateTimer() { KillTimer(eventidOnCreate); OnCreate(); }
+void FireOnCreate() { SetTimer(eventidOnCreate, 10, OnCreateTimerProc); }	
+static void CALLBACK OnCreateTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnCreateTimer(); }	
+void OnCreateTimer() { KillTimer(eventidOnCreate); OnCreate(); }
 ```
 
 HTML5 DOM Events (addEventListener)

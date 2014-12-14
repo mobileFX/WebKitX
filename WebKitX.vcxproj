@@ -144,6 +144,8 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="README.md" />
     <None Include="WebKitX.rgs" />
     <None Include="WebKitXCtrl.bmp" />
   </ItemGroup>

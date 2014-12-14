@@ -92,67 +92,14 @@ bool CWebKitXCtrl::InitCEF()
 };
 ```
 
-Visual Basic 6 Sample
----------------------
-
-![](cef_on_vb6.jpeg)
-
-The Visual Basic sample project simply demonstrates how to use WebKitX API.
-
-```VB6
-Option Explicit
-
-Private Const S_HTML = "<html><body><button id='btn1'>Hello CEF</button></body></html>"
-
-Private Sub Form_Resize()
-    On Error Resume Next
-    WebKitX1.Move 0, 0, ScaleWidth, ScaleHeight
-    Err.Clear
-End Sub
-
-Private Sub mnuEditable_Click()
-    mnuEditable.Checked = Not mnuEditable.Checked
-    If mnuEditable.Checked Then
-        WebKitX1.Edit
-    Else
-        WebKitX1.Preview
-    End If
-End Sub
-
-Private Sub mnuGet_Click()
-    Debug.Print WebKitX1.HTML
-End Sub
-
-Private Sub mnuOpen_Click()
-    WebKitX1.OpenURL "http://www.mobilefx.com"
-End Sub
-
-Private Sub mnuPut_Click()
-    WebKitX1.HTML = S_HTML
-End Sub
-
-Private Sub WebKitX1_OnCreate()
-    WebKitX1.HTML = S_HTML
-End Sub
-
-Private Sub WebKitX1_OnReady()
-    WebKitX1.addEventListener "btn1", "click", AddressOf Module1.OnClick
-    WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick"
-End Sub
-
-Public Function OnClick() As Long
-    MsgBox "Clicked - handled by class"
-End Function
-```
-
 ActiveX Interface
 ------------------
 I have implemented a small robust API on the ActiveX as an example. The API functions open a URL, put/get HTML and enable/disable HTML5 editing. The API demonstrates all CEF-related bizzares and how to do things properly; Some CEF functions are **asynchronous** and must run of certain CEF threads before the ActiveX can get the results on its main thread, and pass it to VB6. It should be very easy to extend my code and add your own functions.
 
-Events
-------
+ActiveX Events
+--------------
 
-An important note about ActiveX Events is that they must be fired from the main thread and not from CEF thread. For that I decided to use Timers.
+An important note about ActiveX Events (COM Connection Points) is that they must be fired from the main thread and not from CEF thread. I am using Timets for firing events and it seems to be working ok.
 
 ```C++
 	void FireOnReady() { SetTimer(eventidOnReady, 10, OnReadyTimerProc); }
@@ -164,8 +111,8 @@ An important note about ActiveX Events is that they must be fired from the main 
 	void OnCreateTimer() { KillTimer(eventidOnCreate); OnCreate(); }
 ```
 
-addEventListener
-----------------
+HTML5 DOM Events (addEventListener)
+-----------------------------------
 
 An interesting implementation is attaching DOM events and using VB6 class functions or global module functions for callbacks.
 
@@ -285,6 +232,59 @@ void CWebKitXCtrl::ExecuteAddEvent(std::string elementID, std::string eventType,
 template<typename T> void CWebKitXCtrl::__addEventHandler(std::string elementID, std::string eventType, T handler)
 {
 }
+```
+
+Visual Basic 6 Sample
+---------------------
+
+![](cef_on_vb6.jpeg)
+
+The Visual Basic sample project simply demonstrates how to use WebKitX API.
+
+```VB6
+Option Explicit
+
+Private Const S_HTML = "<html><body><button id='btn1'>Hello CEF</button></body></html>"
+
+Private Sub Form_Resize()
+    On Error Resume Next
+    WebKitX1.Move 0, 0, ScaleWidth, ScaleHeight
+    Err.Clear
+End Sub
+
+Private Sub mnuEditable_Click()
+    mnuEditable.Checked = Not mnuEditable.Checked
+    If mnuEditable.Checked Then
+        WebKitX1.Edit
+    Else
+        WebKitX1.Preview
+    End If
+End Sub
+
+Private Sub mnuGet_Click()
+    Debug.Print WebKitX1.HTML
+End Sub
+
+Private Sub mnuOpen_Click()
+    WebKitX1.OpenURL "http://www.mobilefx.com"
+End Sub
+
+Private Sub mnuPut_Click()
+    WebKitX1.HTML = S_HTML
+End Sub
+
+Private Sub WebKitX1_OnCreate()
+    WebKitX1.HTML = S_HTML
+End Sub
+
+Private Sub WebKitX1_OnReady()
+    WebKitX1.addEventListener "btn1", "click", AddressOf Module1.OnClick
+    WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick"
+End Sub
+
+Public Function OnClick() As Long
+    MsgBox "Clicked - handled by class"
+End Function
 ```
 
 Future Work

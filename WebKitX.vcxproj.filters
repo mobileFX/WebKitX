@@ -3,6 +3,8 @@
   <ItemGroup>
     <None Include="WebKitXCtrl.bmp" />
     <None Include="WebKitX.rgs" />
+    <None Include="README.md" />
+    <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />

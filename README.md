@@ -212,6 +212,9 @@ void CWebKitXCtrl::ExecuteAddEventEx(std::string elementID, std::string eventTyp
 Using a template you can define custome event callback signatures like this:
 
 ```C++
+
+typedef LONG (__stdcall *VISUAL_BASIC_6_FN_PTR)(<event parameters here>);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Add Event Listener to Visual Basic 6 Global Function Callback
 void CWebKitXCtrl::addEventListener(LPCTSTR Selector, LPCTSTR Event, LONG AddressOfEventHandler)

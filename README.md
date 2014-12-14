@@ -5,7 +5,7 @@
 WebKitX
 =======
 
-This is a Visual Studio 2010 SP1 MFC ActiveX Project that wraps Chromium Embedded Framework (CEF) version 1.1364.1123 for use with OLE/COM languages such as Visual Basic 6.0 SP1.
+This is a Visual Studio 2010 SP1 C++ MFC/ATL ActiveX Project that wraps Chromium Embedded Framework (CEF) version 1.1364.1123 for use with OLE/COM languages such as Visual Basic 6.0 SP1.
 
 Background
 ----------

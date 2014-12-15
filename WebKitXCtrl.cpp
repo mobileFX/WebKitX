@@ -15,6 +15,18 @@ extern CefRefPtr<WebKitHandler> g_handler = NULL;
 bool CWebKitXCtrl::CEF_INITIALIZED = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Replace(std::string str, const std::string& find, const std::string& replace)
+{
+	size_t start_pos = 0;
+	while((start_pos = str.find(find, start_pos)) != std::string::npos) 
+	{
+		str.replace(start_pos, find.length(), replace);
+		start_pos += replace.length();
+	}
+	return str;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Message map
 BEGIN_MESSAGE_MAP(CWebKitXCtrl, COleControl)		
 	ON_MESSAGE(WM_SIZE, &CWebKitXCtrl::OnResize)
@@ -34,12 +46,15 @@ BEGIN_DISPATCH_MAP(CWebKitXCtrl, COleControl)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Modified", dispidModified, Modified, VT_BOOL, VTS_NONE)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Reload", dispidReload, Reload, VT_EMPTY, VTS_NONE)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "addEventListener", dispidaddEventListener, addEventListener, VT_EMPTY, VTS_BSTR VTS_BSTR VTS_I4 VTS_BOOL)
-	DISP_FUNCTION_ID(CWebKitXCtrl, "addEventListenerEx", dispidaddEventListenerEx, addEventListenerEx, VT_EMPTY, VTS_BSTR VTS_BSTR VTS_DISPATCH VTS_BSTR VTS_BOOL)
-	DISP_PROPERTY_NOTIFY_ID(CWebKitXCtrl, "Created", dispidCreated, m_Created, OnCreatedChanged, VT_BOOL)
+	DISP_FUNCTION_ID(CWebKitXCtrl, "addEventListenerEx", dispidaddEventListenerEx, addEventListenerEx, VT_EMPTY, VTS_BSTR VTS_BSTR VTS_DISPATCH VTS_BSTR VTS_BOOL)	
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Repaint", dispidRepaint, Repaint, VT_EMPTY, VTS_NONE)	
 	DISP_FUNCTION_ID(CWebKitXCtrl, "SetStyle", dispidSetStyle, SetStyle, VT_EMPTY, VTS_BSTR VTS_BSTR VTS_BSTR)
 	DISP_PROPERTY_NOTIFY_ID(CWebKitXCtrl, "Editable", dispidEditable, m_Editable, OnEditableChanged, VT_BOOL)	
 	DISP_FUNCTION_ID(CWebKitXCtrl, "SelectElement", dispidSelectElement, SelectElement, VT_EMPTY, VTS_BSTR VTS_BOOL)
+	DISP_STOCKPROP_HWND()	
+	DISP_FUNCTION_ID(CWebKitXCtrl, "hBrowserHWND", dispidhBrowserHWND, hBrowserHWND, VT_HANDLE, VTS_NONE)
+	DISP_FUNCTION_ID(CWebKitXCtrl, "LoadHTML", dispidLoadHTML, LoadHTML, VT_EMPTY, VTS_BSTR VTS_BSTR)
+	DISP_FUNCTION_ID(CWebKitXCtrl, "Created", dispidCreated, Created, VT_BOOL, VTS_NONE)
 END_DISPATCH_MAP()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,6 +64,7 @@ BEGIN_EVENT_MAP(CWebKitXCtrl, COleControl)
 	EVENT_CUSTOM_ID("OnCreate", eventidOnCreate, OnCreate, VTS_NONE)
 	EVENT_CUSTOM_ID("OnFocus", eventidOnFocus, OnFocus, VTS_BSTR)
 	EVENT_CUSTOM_ID("OnModified", eventidOnModified, OnModified, VTS_NONE)
+	EVENT_STOCK_MOUSEDOWN()
 END_EVENT_MAP()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,8 +105,9 @@ CWebKitXCtrl::CWebKitXCtrl() :
 	m_BrowserHwnd(NULL), 
 	SIG_READY(NULL),
 	CEF_BROWSER_CREATED(false),
-	m_Created(VARIANT_FALSE),
-	hook(NULL)
+	m_ActiveXCreated(VARIANT_FALSE),
+	hook(NULL),
+	UID_COUNTER(0)
 {
 	InitializeIIDs(&IID_DWebKitX, &IID_DWebKitXEvents);	
 	g_instnace = this;		
@@ -107,11 +124,14 @@ CWebKitXCtrl::~CWebKitXCtrl()
 	{		
 		g_instnace = NULL;
 		m_Browser = NULL;		
-		g_handler = NULL;
+		g_handler = NULL;		
 
 		if(hook)
 			UnhookWindowsHookEx(hook);
-	}		
+	}
+
+	selectedNode = NULL;
+
 	debugPrint("CWebKitXCtrl Terminated %d.\n", (int)this);
 }
 
@@ -216,6 +236,7 @@ void CWebKitXCtrl::CreateCEFBrowser()
 	debugPrint("Creating CEF Browser...\n");
 	if(CefBrowser::CreateBrowser(info,	static_cast<CefRefPtr<CefClient>>(g_handler), "about:blank", browser_settings))
 	{				
+		WebKitV8Extension::RegisterExtension(this);
 		SIG_READY = CreateEvent(NULL, true, false, NULL);		
 	}
 }
@@ -557,18 +578,40 @@ void CWebKitXCtrl::Reload(void)
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();	
 	if(m_Browser)
-		m_Browser->Reload();
+		m_Browser->ReloadIgnoreCache();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::SetHTML(LPCTSTR newVal)
+void CWebKitXCtrl::SetHTML(LPCTSTR HTML)
 {
+	USES_CONVERSION;
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	if(!AmbientUserMode() || !m_Browser) return;
+	REQUIRE_UI_THREAD();	
+
+	std::string html(T2A(HTML));
+	html = Replace(html, "<script", "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script");
+	html = Replace(html, "</script>", "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->");
+
+	m_Browser->StopLoad();
+	m_Browser->GetMainFrame()->LoadStringW(CefString(html), "http://localhost");	
+	SetModifiedFlag(FALSE);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CWebKitXCtrl::LoadHTML(LPCTSTR HTML, LPCTSTR URL)
+{	
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();
-	debugPrint("Put HTML %s.\n", newVal);
+
+	USES_CONVERSION;
+	std::string html(T2A(HTML));
+	html = Replace(html, "<script", "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script");
+	html = Replace(html, "</script>", "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->");
+
 	m_Browser->StopLoad();
-	m_Browser->GetMainFrame()->LoadStringW(CefString(newVal), "http://localhost");	
+	m_Browser->GetMainFrame()->LoadStringW(CefString(html), CefString(URL));	
 	SetModifiedFlag(FALSE);
 }
 
@@ -582,6 +625,11 @@ BSTR CWebKitXCtrl::GetHTML(void)
 		ResetEvent(SIG_READY);
 		CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteGetSource, m_Browser->GetMainFrame()));
 		WaitForSingleObject(SIG_READY, COMMAND_TIMEOUT_HIGH);
+		
+		
+		response = Replace(response, "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script", "<script");
+		response = Replace(response, "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->", "</script>");
+
 		strResult=response.c_str();
 	}
 	return strResult.AllocSysString();
@@ -624,29 +672,48 @@ void CWebKitXCtrl::AttachEditDOMEvents()
 {
 	REQUIRE_UI_THREAD();	
 	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("mousedown"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
-	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("DOMSubtreeModified"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
+	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("DOMSubtreeModified"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void __stdcall CWebKitXCtrl::__HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 {
-	if(!g_instnace->m_Editable) return;
+	g_instnace->HandleDOMEvent(e);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
+{
+	if(!m_Editable) return;
 	CefRefPtr<CefDOMEvent> DOMEvnet = *e;
 	
 	// Get event type (eg. mousedown)
 	std::string type(DOMEvnet->GetType());
+	
+	CefRefPtr<CefDOMNode> node = DOMEvnet->GetTarget();
+	//selectedNode = node;
 
 	// Get DOM path
-	std::vector<std::string> path;
-	CefRefPtr<CefDOMNode> node = DOMEvnet->GetTarget();
+	std::vector<std::string> path;	
 	while(node)
 	{
-		std::string id(node->GetElementAttribute("id"));
-		if(id.length()>0) id = "[" + id + "]";
 		std::string tag(node->GetElementTagName());
-		std::string item = std::string(tag+id);		
+		if(tag=="HTML") break;
+		std::string uid(node->GetElementAttribute("__uid"));
+		if(uid.size()==0)
+		{
+			char buff[255];
+			memset(buff ,0, 255);
+			sprintf(buff, "__uid_%d", ++UID_COUNTER);
+			uid = std::string(buff);			
+			node->SetElementAttribute("__uid", uid);
+		}
+		
+		std::string id(node->GetElementAttribute("id"));
+		if(id.length()>0) id = "[" + id + "]";		
+		std::string item = tag+id+":"+uid;		
 		path.insert(path.begin(), item);
-		node = node->GetParent();
+		node = node->GetParent();		
 	}	
 	std::string target = join(path.begin(), path.end(), std::string("/"));
 
@@ -656,12 +723,13 @@ void __stdcall CWebKitXCtrl::__HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 	// Fire OnFocus ActiveX Event
 	if(type=="DOMSubtreeModified") 
 	{		
-		g_instnace->OnModified();
+		OnModified();
 	}
 	else
 	{		
 		CComBSTR btarget(target.c_str());
-		g_instnace->FireEvent(eventidOnFocus, EVENT_PARAM(VTS_BSTR), btarget);
+		FireEvent(eventidOnFocus, EVENT_PARAM(VTS_BSTR), btarget);
+		FireOnMouseDown();
 	}
 }
 
@@ -735,23 +803,17 @@ void CWebKitXCtrl::__set_style(std::string selector, std::string attrName, std::
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::OnCreatedChanged(void)
-{
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	REQUIRE_UI_THREAD();		
-	SetModifiedFlag();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CWebKitXCtrl::Repaint(void)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	REQUIRE_UI_THREAD();	
+	InvalidateControl();
+	REQUIRE_UI_THREAD();		
 	RECT rc;
 	GetClientRect(&rc);
 	CefRect rect;
 	rect.Set(0,0,rc.right, rc.bottom);
 	m_Browser->Invalidate(rect);
+	SendMessage(WM_PAINT,0,0);
 	::SendMessage(m_BrowserHwnd, WM_PAINT, 0 , 0);
 }
 
@@ -763,7 +825,6 @@ void CWebKitXCtrl::SetStyle(LPCTSTR Selector, LPCTSTR StyleName, LPCTSTR StyleVa
 	REQUIRE_UI_THREAD();	
 	__set_style(std::string(T2A(Selector)), std::string(T2A(StyleName)), std::string(T2A(StyleValue)));
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CWebKitXCtrl::OnEditableChanged(void)
@@ -786,8 +847,9 @@ CefRefPtr<CefDOMNode> CWebKitXCtrl::__selectSingleNode(std::string selector, boo
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());	
 	REQUIRE_UI_THREAD();		
+	selectedNode = NULL;
 	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteSelectNode, selector, sel));
-	return NULL;
+	return selectedNode;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -800,12 +862,9 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool sel)
 		g_instnace->v8context->Enter();
 		{
 			std::string code = "(function(select){\n"
-				"var target = document.querySelectorAll(\"" + selector + "\")[0];\n"
+				"var target = document.querySelectorAll('" + selector + "')[0];\n"
 				"if(!target) return;"
 				"target.focus();\n"		
-				"var mousedownEvent = document.createEvent (\"MouseEvent\");\n"
-				"mousedownEvent.initMouseEvent(\"mousedown\",false,false,window,0,0,0,0,0,0,0,0,0,1,target);\n"				
-				"target.dispatchEvent(mousedownEvent);\n"						
 				"var range = document.createRange();\n"
 				"range.selectNodeContents(target);\n"
 				"if(!select) {\n"
@@ -817,16 +876,31 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool sel)
 				"var sel = window.getSelection();\n"
 				"sel.removeAllRanges();\n"
 				"sel.addRange(range);\n"				
-				"return target;\n"
 				"})(" + (sel?"true":"false") + ");";
+
+			//"var mousedownEvent = document.createEvent(\"MouseEvent\");\n"
+			//"mousedownEvent.initMouseEvent(\"mousedown\",false,false,window,0,0,0,0,0,0,0,0,0,1,target);\n"				
+			//"target.dispatchEvent(mousedownEvent);\n"						
+
 			
 			CefRefPtr<CefV8Value> retval;
 			CefRefPtr<CefV8Exception> exception;
-			g_instnace->v8context->Eval(code.c_str(), retval, exception);
-
-			//TODO: Need to find a way to extract a CefRefPtr<CefDOMNode> from CefRefPtr<CefV8Value>
-
+			g_instnace->v8context->Eval(code.c_str(), retval, exception);			
 		}
 		g_instnace->v8context->Exit();
 	}	
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+OLE_HANDLE CWebKitXCtrl::hBrowserHWND(void)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	return (OLE_HANDLE) m_BrowserHwnd;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+VARIANT_BOOL CWebKitXCtrl::Created(void)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	return m_ActiveXCreated;
 }

@@ -155,6 +155,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (CEF3)|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="WebKitHandler.cpp" />
+    <ClCompile Include="WebKitV8Extension.cpp" />
     <ClCompile Include="WebKitX.cpp" />
     <ClCompile Include="WebKitXCtrl.cpp" />
   </ItemGroup>
@@ -162,6 +163,7 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="WebKitHandler.h" />
+    <ClInclude Include="WebKitV8Extension.h" />
     <ClInclude Include="WebKitX.h" />
     <ClInclude Include="WebKitXCtrl.h" />
   </ItemGroup>

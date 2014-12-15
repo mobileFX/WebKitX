@@ -20,9 +20,9 @@ library WebKitXLib
 	{
 		properties:
 			[id(2)] BSTR HTML;
-			[id(0)] BSTR _HTML;			
-			[id(9) ] VARIANT_BOOL Created;
+			[id(0)] BSTR _HTML;						
 			[id(12) ] VARIANT_BOOL Editable;
+			[id(DISPID_HWND)] OLE_HANDLE hWnd;			
 
 	methods:			
 			[id(1)] void OpenURL([in] BSTR URL);			
@@ -35,6 +35,9 @@ library WebKitXLib
 			[id(10)] void Repaint(void);
 			[id(11)] void SetStyle(BSTR Selector, BSTR StyleName, BSTR StyleValue);			
 			[id(13)] void SelectElement(BSTR Selector, VARIANT_BOOL Select);
+			[id(14)] OLE_HANDLE hBrowserHWND(void);
+			[id(15)] void LoadHTML(BSTR HTML, BSTR URL);
+			[id(16)] VARIANT_BOOL Created(void);
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +55,7 @@ library WebKitXLib
 			[id(2)] void OnCreate();
 			[id(3)] void OnFocus(BSTR NodePath);
 			[id(4)] void OnModified(void);
+			[id(DISPID_MOUSEDOWN)] void MouseDown(SHORT Button, SHORT Shift, OLE_XPOS_PIXELS x, OLE_YPOS_PIXELS y);
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

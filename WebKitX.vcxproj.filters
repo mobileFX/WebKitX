@@ -11,6 +11,7 @@
     <ClCompile Include="WebKitHandler.cpp" />
     <ClCompile Include="WebKitX.cpp" />
     <ClCompile Include="WebKitXCtrl.cpp" />
+    <ClCompile Include="WebKitV8Extension.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h" />
@@ -18,6 +19,7 @@
     <ClInclude Include="WebKitHandler.h" />
     <ClInclude Include="WebKitX.h" />
     <ClInclude Include="WebKitXCtrl.h" />
+    <ClInclude Include="WebKitV8Extension.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebKitX.rc" />

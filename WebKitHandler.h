@@ -5,6 +5,8 @@
 #include "include/cef_client.h"
 #include "include/cef_nplugin.h"
 
+class CWebKitXCtrl;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef CEF_VERSION_1
 #define WINDOW_HANDLE(B) B->GetWindowHandle()
@@ -22,23 +24,22 @@
 #define REQUIRE_IO_THREAD()   ASSERT(CefCurrentlyOn(TID_IO));
 #define REQUIRE_FILE_THREAD() ASSERT(CefCurrentlyOn(TID_FILE));
 
-template <class T, class A>
-T join(const A &begin, const A &end, const T &t)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template <class T, class A> T join(const A &begin, const A &end, const T &t)
 {
 	T result;
-	for (A it=begin;
-		it!=end;
-		it++)
+	for (A it=begin; it!=end; it++)
 	{
-		if (!result.empty())
-			result.append(t);
+		if (!result.empty()) result.append(t);
 		result.append(*it);
 	}
 	return result;
 }
 
-class CWebKitXCtrl;
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// WebKitHandler Class (received notifications from CEF)
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 class WebKitHandler :
 	public CefClient,
@@ -46,7 +47,8 @@ class WebKitHandler :
 	public CefLoadHandler,
 	public CefKeyboardHandler,
 	public CefRenderHandler,
-	public CefV8ContextHandler
+	public CefV8ContextHandler,
+	public CefPermissionHandler
 {
 public:
 

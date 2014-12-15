@@ -106,6 +106,5 @@ void WebKitHandler::OnContextReleased(CefRefPtr<CefBrowser> browser, CefRefPtr<C
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 void WebKitHandler::OnUncaughtException(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Exception> exception, CefRefPtr<CefV8StackTrace> stackTrace)
 {
-
 }
 

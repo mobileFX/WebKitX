@@ -36,26 +36,25 @@ public:
 	static CWebKitXCtrl* g_instnace;
 	CefRefPtr<WebKitHandler> g_handler;	
 	HANDLE SIG_READY;
+	CefRefPtr<CefBrowser> m_Browser;		// The child browser window
+	CefRefPtr<CefV8Context> v8context;		// V8 Context
+	CefWindowHandle m_MainHwnd;				// The main frame window handle
+	CefWindowHandle m_BrowserHwnd;			// The child browser window handle	
+	HHOOK hook;	
+	static bool CEF_INITIALIZED;
+	bool CEF_BROWSER_CREATED;
 	std::string response;
 	std::string selector;
 	std::string attrName;
 	std::string attrValue;	
-	CefRefPtr<CefBrowser> m_Browser;		// The child browser window
-	CefWindowHandle m_MainHwnd;				// The main frame window handle
-	CefWindowHandle m_BrowserHwnd;			// The child browser window handle	
-	HHOOK hook;	
+	VARIANT_BOOL m_Created;
+	VARIANT_BOOL m_Editable;
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	CWebKitXCtrl();
 	~CWebKitXCtrl();
 
-	// CEF Life Management
-	static bool CEF_INITIALIZED;
-	bool CEF_BROWSER_CREATED;
-	static bool InitCEF();
-	static void QuitCEF();
-	void CreateCEFBrowser();
-	void DestroyCEFBrowser();
-
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	#ifdef CEF_VERSION_3
 	virtual void OnContextInitialized() OVERRIDE;
 	#endif
@@ -73,9 +72,16 @@ public:
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// CEF API
+
+	static bool InitCEF();
+	static void QuitCEF();
+	void CreateCEFBrowser();
+	void DestroyCEFBrowser();
+
 	static void ExecuteGetSource(CefRefPtr<CefFrame> frame);
 	static void ExecuteEditable(CefRefPtr<CefFrame> frame);		
 	static void ExecuteAddEventEx(std::string elementID, std::string eventType, IDispatch* vbObject, std::string vbObjectFunctionName, VARIANT_BOOL UseCapture);
+	static void ExecuteSelectNode(std::string selector, bool sel);
 		
 	template<typename F, typename P> static void ExecuteAddEvent(std::string elementID, std::string eventType, F handler, VARIANT_BOOL UseCapture);
 	template<typename F, typename P> void __addEventHandler(std::string elementID, std::string eventType, F handler, VARIANT_BOOL UseCapture);
@@ -83,19 +89,14 @@ public:
 	typedef void (__stdcall *EVENT_HANDLER_FN)(CefRefPtr<CefDOMEvent>*);
 	static void __stdcall __HandleDOMEvent(CefRefPtr<CefDOMEvent>* DOMEvnet);	
 
-	void __set_attribute(std::string selector, std::string attrName, std::string attrValue);
-	void __set_style(std::string selector, std::string attrName, std::string attrValue);	
-
-	static void CALLBACK CWebKitXCtrl::AttachEditDOMEventsTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 	void AttachEditDOMEvents();
+	void __set_attribute(std::string selector, std::string attrName, std::string attrValue);
+	void __set_style(std::string selector, std::string attrName, std::string attrValue);		
+	CefRefPtr<CefDOMNode> __selectSingleNode(std::string selector, bool sel);	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX API
 	
-	VARIANT_BOOL m_Created;
-	VARIANT_BOOL m_Editable;
-	VARIANT_BOOL Modified(void);
-
 	void OpenURL(LPCTSTR URL);
 	BSTR GetHTML();
 	void SetHTML(LPCTSTR newVal);		
@@ -106,6 +107,8 @@ public:
 	void addEventListener(LPCTSTR Selector, LPCTSTR Event, LONG AddressOfEventHandler, VARIANT_BOOL UseCapture);
 	void addEventListenerEx(LPCTSTR Selector, LPCTSTR Event, IDispatch* vbObject, LPCTSTR vbObjectFunctionName, VARIANT_BOOL UseCapture);	
 	void SetStyle(LPCTSTR Selector, LPCTSTR StyleName, LPCTSTR StyleValue);
+	VARIANT_BOOL Modified(void);	
+	void SelectElement(LPCTSTR Selector, VARIANT_BOOL Select);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX Events
@@ -192,7 +195,7 @@ public:
 	DECLARE_EVENT_MAP()
 
 	enum 
-	{		
+	{				
 		dispidSelectElement = 13L,
 		eventidOnModified = 4L,
 		dispidEditable = 12,
@@ -211,8 +214,6 @@ public:
 		dispidOpenURL = 1L,
 		dispidHTML = 2L
 	};	
-protected:
-	void SelectElement(LPCTSTR Selector);
 };
 
 #endif

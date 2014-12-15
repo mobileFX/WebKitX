@@ -94,13 +94,13 @@ bool WebKitHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, KeyEventType type,
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 void WebKitHandler::OnContextCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context)
 {
-	this->context = context;
+	control->v8context = context;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 void WebKitHandler::OnContextReleased(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context)
 {
-	this->context = NULL;
+	control->v8context = NULL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

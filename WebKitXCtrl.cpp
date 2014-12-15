@@ -38,8 +38,8 @@ BEGIN_DISPATCH_MAP(CWebKitXCtrl, COleControl)
 	DISP_PROPERTY_NOTIFY_ID(CWebKitXCtrl, "Created", dispidCreated, m_Created, OnCreatedChanged, VT_BOOL)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Repaint", dispidRepaint, Repaint, VT_EMPTY, VTS_NONE)	
 	DISP_FUNCTION_ID(CWebKitXCtrl, "SetStyle", dispidSetStyle, SetStyle, VT_EMPTY, VTS_BSTR VTS_BSTR VTS_BSTR)
-	DISP_PROPERTY_NOTIFY_ID(CWebKitXCtrl, "Editable", dispidEditable, m_Editable, OnEditableChanged, VT_BOOL)
-	DISP_FUNCTION_ID(CWebKitXCtrl, "SelectElement", dispidSelectElement, SelectElement, VT_EMPTY, VTS_BSTR)
+	DISP_PROPERTY_NOTIFY_ID(CWebKitXCtrl, "Editable", dispidEditable, m_Editable, OnEditableChanged, VT_BOOL)	
+	DISP_FUNCTION_ID(CWebKitXCtrl, "SelectElement", dispidSelectElement, SelectElement, VT_EMPTY, VTS_BSTR VTS_BOOL)
 END_DISPATCH_MAP()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,12 +204,12 @@ void CWebKitXCtrl::CreateCEFBrowser()
 
 	// FOR HTML5 EDITOR MODE YOU BETTER DISABLE JAVASCRIPT AND PLUGINS
 	browser_settings.java_disabled = true;
+	browser_settings.javascript_disabled = false;
 	browser_settings.javascript_access_clipboard_disallowed = true;
 	browser_settings.javascript_close_windows_disallowed = true;
-	browser_settings.javascript_disabled = true;
 	browser_settings.javascript_open_windows_disallowed = true;
 	browser_settings.page_cache_disabled = true;
-	browser_settings.plugins_disabled = true;		
+	browser_settings.plugins_disabled = false;		
 
 	g_handler = new WebKitHandler(this);
 
@@ -774,9 +774,59 @@ void CWebKitXCtrl::OnEditableChanged(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::SelectElement(LPCTSTR Selector)
+void CWebKitXCtrl::SelectElement(LPCTSTR Selector, VARIANT_BOOL Sel)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	REQUIRE_UI_THREAD();	
-	//m_Browser->GetMainFrame()->ExecuteJavaScript()
+	USES_CONVERSION;
+	__selectSingleNode(std::string(T2A(Selector)), Sel!=0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+CefRefPtr<CefDOMNode> CWebKitXCtrl::__selectSingleNode(std::string selector, bool sel)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());	
+	REQUIRE_UI_THREAD();		
+	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteSelectNode, selector, sel));
+	return NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool sel)
+{
+	REQUIRE_UI_THREAD();		
+	CefRefPtr<CefDOMNode> node;
+	if(g_instnace->v8context)
+	{
+		g_instnace->v8context->Enter();
+		{
+			std::string code = "(function(select){\n"
+				"var target = document.querySelectorAll(\"" + selector + "\")[0];\n"
+				"if(!target) return;"
+				"target.focus();\n"		
+				"var mousedownEvent = document.createEvent (\"MouseEvent\");\n"
+				"mousedownEvent.initMouseEvent(\"mousedown\",false,false,window,0,0,0,0,0,0,0,0,0,1,target);\n"				
+				"target.dispatchEvent(mousedownEvent);\n"						
+				"var range = document.createRange();\n"
+				"range.selectNodeContents(target);\n"
+				"if(!select) {\n"
+				"  var startNode = target.firstChild;\n"
+				"  var endNode = target.firstChild;\n"
+				"  range.setStart(startNode, 0);\n"
+				"  range.setEnd(endNode, 0);\n"
+				"}\n"
+				"var sel = window.getSelection();\n"
+				"sel.removeAllRanges();\n"
+				"sel.addRange(range);\n"				
+				"return target;\n"
+				"})(" + (sel?"true":"false") + ");";
+			
+			CefRefPtr<CefV8Value> retval;
+			CefRefPtr<CefV8Exception> exception;
+			g_instnace->v8context->Eval(code.c_str(), retval, exception);
+
+			//TODO: Need to find a way to extract a CefRefPtr<CefDOMNode> from CefRefPtr<CefV8Value>
+
+		}
+		g_instnace->v8context->Exit();
+	}	
 }

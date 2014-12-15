@@ -33,8 +33,8 @@ library WebKitXLib
 			[id(7)] void addEventListener([in] BSTR Selector,[in] BSTR Event,[in] LONG AddressOfEventHandler, [in] VARIANT_BOOL UseCapture);
 			[id(8)] void addEventListenerEx([in] BSTR Selector, [in] BSTR Event, [in] IDispatch* vbObject, [in] BSTR vbObjectFunctionName, [in] VARIANT_BOOL UseCapture);
 			[id(10)] void Repaint(void);
-			[id(11)] void SetStyle(BSTR Selector, BSTR StyleName, BSTR StyleValue);
-			[id(13)] void SelectElement(BSTR Selector);
+			[id(11)] void SetStyle(BSTR Selector, BSTR StyleName, BSTR StyleValue);			
+			[id(13)] void SelectElement(BSTR Selector, VARIANT_BOOL Select);
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

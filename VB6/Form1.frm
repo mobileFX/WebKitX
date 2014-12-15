@@ -37,6 +37,15 @@ Begin VB.Form Form1
       Begin VB.Menu sp1 
          Caption         =   "-"
       End
+      Begin VB.Menu mnuSelect 
+         Caption         =   "Select"
+      End
+      Begin VB.Menu mnuMoveCaret 
+         Caption         =   "Move Caret"
+      End
+      Begin VB.Menu sp2 
+         Caption         =   "-"
+      End
       Begin VB.Menu mnuEditable 
          Caption         =   "Editable"
       End
@@ -78,12 +87,24 @@ Private Sub mnuPut_Click()
     WebKitX1.HTML = S_HTML
 End Sub
 
+Private Sub mnuSelect_Click()
+    WebKitX1.SelectElement "#div1", True
+End Sub
+
+Private Sub mnuMoveCaret_Click()
+    WebKitX1.SelectElement "#div1", False
+End Sub
+
 Private Sub WebKitX1_OnCreate()
     WebKitX1.HTML = S_HTML
 End Sub
 
 Private Sub WebKitX1_OnFocus(ByVal NodePath As String)
     Debug.Print NodePath
+End Sub
+
+Private Sub WebKitX1_OnModified()
+    Debug.Print "Modified"
 End Sub
 
 Private Sub WebKitX1_OnReady()

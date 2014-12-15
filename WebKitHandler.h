@@ -50,8 +50,7 @@ class WebKitHandler :
 {
 public:
 
-	CWebKitXCtrl* control;
-	CefRefPtr<CefV8Context> context;
+	CWebKitXCtrl* control;	
 
 	WebKitHandler(CWebKitXCtrl* control);
 	~WebKitHandler(void);

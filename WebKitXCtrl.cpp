@@ -590,8 +590,11 @@ void CWebKitXCtrl::SetHTML(LPCTSTR HTML)
 	REQUIRE_UI_THREAD();	
 
 	std::string html(T2A(HTML));
-	html = Replace(html, "<script", "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script");
-	html = Replace(html, "</script>", "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->");
+	if(m_Editable=VARIANT_TRUE)
+	{
+		html = Replace(html, "<script", "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script");
+		html = Replace(html, "</script>", "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->");
+	}
 
 	m_Browser->StopLoad();
 	m_Browser->GetMainFrame()->LoadStringW(CefString(html), "http://localhost");	
@@ -607,8 +610,11 @@ void CWebKitXCtrl::LoadHTML(LPCTSTR HTML, LPCTSTR URL)
 
 	USES_CONVERSION;
 	std::string html(T2A(HTML));
-	html = Replace(html, "<script", "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script");
-	html = Replace(html, "</script>", "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->");
+	if(m_Editable=VARIANT_TRUE)
+	{
+		html = Replace(html, "<script", "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script");
+		html = Replace(html, "</script>", "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->");
+	}
 
 	m_Browser->StopLoad();
 	m_Browser->GetMainFrame()->LoadStringW(CefString(html), CefString(URL));	
@@ -626,9 +632,11 @@ BSTR CWebKitXCtrl::GetHTML(void)
 		CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteGetSource, m_Browser->GetMainFrame()));
 		WaitForSingleObject(SIG_READY, COMMAND_TIMEOUT_HIGH);
 		
-		
-		response = Replace(response, "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script", "<script");
-		response = Replace(response, "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->", "</script>");
+		if(m_Editable=VARIANT_TRUE)
+		{
+			response = Replace(response, "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script", "<script");
+			response = Replace(response, "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->", "</script>");
+		}
 
 		strResult=response.c_str();
 	}
@@ -880,8 +888,7 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool sel)
 
 			//"var mousedownEvent = document.createEvent(\"MouseEvent\");\n"
 			//"mousedownEvent.initMouseEvent(\"mousedown\",false,false,window,0,0,0,0,0,0,0,0,0,1,target);\n"				
-			//"target.dispatchEvent(mousedownEvent);\n"						
-
+			//"target.dispatchEvent(mousedownEvent);\n"
 			
 			CefRefPtr<CefV8Value> retval;
 			CefRefPtr<CefV8Exception> exception;

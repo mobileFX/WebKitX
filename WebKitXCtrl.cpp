@@ -779,5 +779,4 @@ void CWebKitXCtrl::SelectElement(LPCTSTR Selector)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	REQUIRE_UI_THREAD();	
 	//m_Browser->GetMainFrame()->ExecuteJavaScript()
-
 }

@@ -53,6 +53,7 @@ public:
 	VARIANT_BOOL m_Editable;
 	VARIANT_BOOL m_ActiveXCreated;
 	UINT UID_COUNTER;
+	bool LoadingHTML;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	CWebKitXCtrl();
@@ -157,14 +158,30 @@ public:
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------
-	void FireOnMouseDown() { SetTimer(1000, 10, OnMouseDownTimerProc); }	
+	static const UINT_PTR ON_MOUSE_DOWN_TIMER = 1000;	
+	void FireOnMouseDown() { KillTimer(ON_MOUSE_DOWN_TIMER); SetTimer(ON_MOUSE_DOWN_TIMER, 10, OnMouseDownTimerProc); }	
 	static void CALLBACK OnMouseDownTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnMouseDownTimer(); }	
-	void OnMouseDownTimer() { KillTimer(1000); OnMouseDown(); }
+	void OnMouseDownTimer() { KillTimer(ON_MOUSE_DOWN_TIMER); OnMouseDown(); }
 	void OnMouseDown(void)
 	{
-		debugPrint("OnMouseDown.\n");				
-		g_instnace->FireMouseDown(1, 0, 0,0);
+		debugPrint("OnMouseDown\n");				
+		FireMouseDown(1, 0, 0,0);
 	}
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------
+	static const UINT_PTR ON_FOCUS_TIMER = 1001;	
+	static std::string focusNodes;
+	void FireOnFocus() { KillTimer(ON_FOCUS_TIMER); SetTimer(ON_FOCUS_TIMER, 10, OnFocusTimerProc); }	
+	static void CALLBACK OnFocusTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnFocusTimer(); }	
+	void OnFocusTimer() { KillTimer(ON_FOCUS_TIMER); OnFocus(); }
+	void OnFocus(void)
+	{
+		if(focusNodes.size()==0) return;
+		debugPrint("OnFocus\n");				
+		CComBSTR btarget(focusNodes.c_str());
+		FireEvent(eventidOnFocus, EVENT_PARAM(VTS_BSTR), btarget);
+	}
+
 	//---------------------------------------------------------------------------------------------------------------------------------------------
 	void OnModified(void)
 	{

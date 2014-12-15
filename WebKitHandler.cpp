@@ -45,6 +45,7 @@ void WebKitHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,	CefRefPtr<CefFram
 	REQUIRE_UI_THREAD();
 	if(control->m_BrowserHwnd == WINDOW_HANDLE(browser))
 	{
+		control->LoadingHTML = true;
 		std::string s(frame->GetURL());		
 		debugPrint("Loading %s ...\n", s.c_str()); 		
 	}
@@ -66,6 +67,7 @@ void WebKitHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame>
 		{
 			control->FireOnCreate();
 		}
+		control->LoadingHTML = false;
 	}	
 }
 

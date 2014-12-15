@@ -12,6 +12,7 @@ IMPLEMENT_DYNCREATE(CWebKitXCtrl, COleControl)
 
 CWebKitXCtrl* CWebKitXCtrl::g_instnace = NULL;
 extern CefRefPtr<WebKitHandler> g_handler = NULL;
+std::string CWebKitXCtrl::focusNodes("");
 bool CWebKitXCtrl::CEF_INITIALIZED = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +108,8 @@ CWebKitXCtrl::CWebKitXCtrl() :
 	CEF_BROWSER_CREATED(false),
 	m_ActiveXCreated(VARIANT_FALSE),
 	hook(NULL),
-	UID_COUNTER(0)
+	UID_COUNTER(0),
+	LoadingHTML(false)
 {
 	InitializeIIDs(&IID_DWebKitX, &IID_DWebKitXEvents);	
 	g_instnace = this;		
@@ -368,6 +370,7 @@ LRESULT CWebKitXCtrl::OnResize(WPARAM wParam, LPARAM lParam)
 			debugPrint("Resizing Browser...\n");
 			::SetParent(m_BrowserHwnd, m_hWnd);
 			::SetWindowPos(m_BrowserHwnd, HWND_TOP, rc1.left, rc1.top, rc1.right-rc1.left, rc1.bottom-rc1.top, SWP_SHOWWINDOW);
+			Repaint();
 		}
 	}
 	return 0;
@@ -693,6 +696,11 @@ void __stdcall CWebKitXCtrl::__HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 {
 	if(!m_Editable) return;
+
+	static bool ReEnter	= false;
+	if(ReEnter) return;
+	ReEnter=true;
+
 	CefRefPtr<CefDOMEvent> DOMEvnet = *e;
 	
 	// Get event type (eg. mousedown)
@@ -716,7 +724,6 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 			uid = std::string(buff);			
 			node->SetElementAttribute("__uid", uid);
 		}
-		
 		std::string id(node->GetElementAttribute("id"));
 		if(id.length()>0) id = "[" + id + "]";		
 		std::string item = tag+id+":"+uid;		
@@ -735,10 +742,13 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 	}
 	else
 	{		
-		CComBSTR btarget(target.c_str());
-		FireEvent(eventidOnFocus, EVENT_PARAM(VTS_BSTR), btarget);
-		FireOnMouseDown();
+		focusNodes = target;
+		FireOnMouseDown();		
+		if(!LoadingHTML)
+			FireOnFocus();		
 	}
+
+	ReEnter=false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

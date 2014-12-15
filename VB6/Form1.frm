@@ -49,7 +49,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-Private Const S_HTML = "<html><body><button id='btn1'>Hello CEF</button></body></html>"
+Private Const S_HTML = "<html><body><button id='btn1'>Hello CEF</button><br><div id='div1'>This is <span>some</span> text</div><br><div id='div2'>This is <span>some</span> text</div><br></body></html>"
 
 Private Sub Form_Resize()
     On Error Resume Next
@@ -82,9 +82,13 @@ Private Sub WebKitX1_OnCreate()
     WebKitX1.HTML = S_HTML
 End Sub
 
+Private Sub WebKitX1_OnFocus(ByVal NodePath As String)
+    Debug.Print NodePath
+End Sub
+
 Private Sub WebKitX1_OnReady()
-    WebKitX1.addEventListener "btn1", "click", AddressOf Module1.OnClick
-    WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick"
+    WebKitX1.addEventListener "btn1", "click", AddressOf Module1.OnClick, True
+    WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick", True
 End Sub
 
 Public Function OnClick() As Long

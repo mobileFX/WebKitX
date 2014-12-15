@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef __WEBKITCTL_H__
+#define __WEBKITCTL_H__
+
 //$(SolutionDir)..\Studio\
 //$(SolutionDir)\CEF\CEF1\DLLs\
 
@@ -16,7 +19,7 @@
 #define COMMAND_TIMEOUT_LOW		 2000
 #define COMMAND_TIMEOUT_HIGH	30000
 
-typedef LONG (__stdcall *VISUAL_BASIC_6_FN_PTR)(LONG, LONG);
+typedef LONG (__stdcall *VISUAL_BASIC_6_FN_PTR)(LONG);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CWebKitXCtrl : 
@@ -40,15 +43,16 @@ public:
 	CefRefPtr<CefBrowser> m_Browser;		// The child browser window
 	CefWindowHandle m_MainHwnd;				// The main frame window handle
 	CefWindowHandle m_BrowserHwnd;			// The child browser window handle	
+	HHOOK hook;	
 	
 	CWebKitXCtrl();
 	~CWebKitXCtrl();
 
 	// CEF Life Management
 	static bool CEF_INITIALIZED;
+	bool CEF_BROWSER_CREATED;
 	static bool InitCEF();
 	static void QuitCEF();
-	bool CEF_BROWSER_CREATED;
 	void CreateCEFBrowser();
 	void DestroyCEFBrowser();
 
@@ -56,61 +60,120 @@ public:
 	virtual void OnContextInitialized() OVERRIDE;
 	#endif
 
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	// Windows WM_MESSAGEs
 	virtual void OnDraw(CDC* pdc, const CRect& rcBounds, const CRect& rcInvalid) OVERRIDE;
 	virtual BOOL IsSubclassedControl() OVERRIDE;
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs) OVERRIDE;
 	virtual void DoPropExchange(CPropExchange* pPX) OVERRIDE;
 	virtual void OnResetState() OVERRIDE;	
-
 	LRESULT OnOcmCommand(WPARAM wParam, LPARAM lParam);
 	LRESULT OnResize(WPARAM wParam, LPARAM lParam);
 	LRESULT CancelMessage(WPARAM wParam, LPARAM lParam);
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	// CEF API
 	static void ExecuteGetSource(CefRefPtr<CefFrame> frame);
 	static void ExecuteEditable(CefRefPtr<CefFrame> frame);		
-	static void ExecuteAddEvent(std::string elementID, std::string eventType, LONG AddressOfEventHandler);
-	static void ExecuteAddEventEx(std::string elementID, std::string eventType, IDispatch* vbObject, std::string vbObjectFunctionName);
+	static void ExecuteAddEventEx(std::string elementID, std::string eventType, IDispatch* vbObject, std::string vbObjectFunctionName, VARIANT_BOOL UseCapture);
+		
+	template<typename F, typename P> static void ExecuteAddEvent(std::string elementID, std::string eventType, F handler, VARIANT_BOOL UseCapture);
+	template<typename F, typename P> void __addEventHandler(std::string elementID, std::string eventType, F handler, VARIANT_BOOL UseCapture);
+	
+	typedef void (__stdcall *EVENT_HANDLER_FN)(CefRefPtr<CefDOMEvent>*);
+	static void __stdcall __HandleDOMEvent(CefRefPtr<CefDOMEvent>* DOMEvnet);	
+
 	void __set_attribute(std::string selector, std::string attrName, std::string attrValue);
 	void __set_style(std::string selector, std::string attrName, std::string attrValue);	
 
-	typedef void(*EVENT_HANDLER_FN)(CefRefPtr<CefDOMEvent>*, CefRefPtr<CefDOMNode>*);
-	template<typename T> void __addEventHandler(std::string elementID, std::string eventType, T handler);	
-	void addEventListenerEx(LPCTSTR Selector, LPCTSTR Event, IDispatch* vbObject, LPCTSTR vbObjectFunctionName);
-
-	// Asynchronous Events 
-	// We need to make sure we are not in the CefBrowser thread and therefore we use timer to fire the events asynchronously.
-
-	void FireOnReady() { SetTimer(eventidOnReady, 10, OnReadyTimerProc); }
-	static void CALLBACK OnReadyTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnReadyTimer(); }
-	void OnReadyTimer() { KillTimer(eventidOnReady); OnReady(); }
-
-	void FireOnCreate() { SetTimer(eventidOnCreate, 10, OnCreateTimerProc); }	
-	static void CALLBACK OnCreateTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnCreateTimer(); }	
-	void OnCreateTimer() { KillTimer(eventidOnCreate); OnCreate(); }
-
-	// ActiveX Events
-	void OnCreate(void)
-	{
-		debugPrint("OnCreate.\n");
-		FireEvent(eventidOnCreate, EVENT_PARAM(VTS_NONE));
-	}
-
-	void OnReady(void)
-	{
-		debugPrint("OnReady.\n");
-		FireEvent(eventidOnReady, EVENT_PARAM(VTS_NONE));
-	}
-
+	static void CALLBACK CWebKitXCtrl::AttachEditDOMEventsTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
+	void AttachEditDOMEvents();
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX API
+	
+	VARIANT_BOOL m_Created;
+	VARIANT_BOOL m_Editable;
+	VARIANT_BOOL Modified(void);
+
 	void OpenURL(LPCTSTR URL);
 	BSTR GetHTML();
 	void SetHTML(LPCTSTR newVal);		
 	void Edit(void);
-	void Preview(void);
-	VARIANT_BOOL Modified(void);
-	void Reload(void);
-	void addEventListener(LPCTSTR Selector, LPCTSTR Event, LONG AddressOfEventHandler);
+	void Preview(void);	
+	void Reload(void);		
+	void Repaint(void);
+	void addEventListener(LPCTSTR Selector, LPCTSTR Event, LONG AddressOfEventHandler, VARIANT_BOOL UseCapture);
+	void addEventListenerEx(LPCTSTR Selector, LPCTSTR Event, IDispatch* vbObject, LPCTSTR vbObjectFunctionName, VARIANT_BOOL UseCapture);	
+	void SetStyle(LPCTSTR Selector, LPCTSTR StyleName, LPCTSTR StyleValue);
 
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	// ActiveX Events
+	
+	//---------------------------------------------------------------------------------------------------------------------------------------------
+	void FireOnReady() 
+	{
+		AttachEditDOMEvents();
+		SetTimer(eventidOnReady, 10, OnReadyTimerProc); 
+	}
+	static void CALLBACK OnReadyTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnReadyTimer(); }
+	void OnReadyTimer() { KillTimer(eventidOnReady); OnReady(); }
+	void OnReady(void)
+	{
+		debugPrint("OnReady.\n");
+
+		if(m_Editable==VARIANT_TRUE)
+		{
+			Edit();
+		}
+		else
+		{
+			Preview();
+		}
+
+		FireEvent(eventidOnReady, EVENT_PARAM(VTS_NONE));
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------
+	void FireOnCreate() { SetTimer(eventidOnCreate, 10, OnCreateTimerProc); }	
+	static void CALLBACK OnCreateTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnCreateTimer(); }	
+	void OnCreateTimer() { KillTimer(eventidOnCreate); OnCreate(); }
+	void OnCreate(void)
+	{
+		debugPrint("OnCreate.\n");
+		m_Created = VARIANT_TRUE;
+		FireEvent(eventidOnCreate, EVENT_PARAM(VTS_NONE));
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------
+	void OnModified(void)
+	{
+		SetModifiedFlag(TRUE);
+		FireEvent(eventidOnModified, EVENT_PARAM(VTS_NONE));
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------
+	void OnEditableChanged(void);
+	void OnCreatedChanged(void);
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	// TODO: Handle mouse move to prevent CSS3 hover styles during editing
+	static LRESULT CALLBACK MouseHook(int nCode, WPARAM wp, LPARAM lp)
+	{
+		/*
+		MOUSEHOOKSTRUCT *pmh = (MOUSEHOOKSTRUCT *) lp;
+		if(nCode >= 0)
+		{		
+			if(wp == WM_RBUTTONDOWN || wp == WM_RBUTTONUP || wp==WM_MOUSEMOVE) 
+			{
+				return 1;
+			}
+		}
+		*/
+		return CallNextHookEx(NULL, nCode, wp, lp);   
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	IMPLEMENT_REFCOUNTING(CWebKitXCtrl);
 	IMPLEMENT_LOCKING(CWebKitXCtrl);		
 
@@ -130,6 +193,13 @@ public:
 
 	enum 
 	{		
+		dispidSelectElement = 13L,
+		eventidOnModified = 4L,
+		dispidEditable = 12,
+		eventidOnFocus = 3L,
+		dispidSetStyle = 11L,
+		dispidRepaint = 10L,
+		dispidCreated = 9,
 		dispidaddEventListenerEx = 8L,
 		dispidaddEventListener = 7L,
 		dispidReload = 6L,
@@ -141,4 +211,8 @@ public:
 		dispidOpenURL = 1L,
 		dispidHTML = 2L
 	};	
+protected:
+	void SelectElement(LPCTSTR Selector);
 };
+
+#endif

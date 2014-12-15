@@ -21,31 +21,12 @@ void WebKitHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
 	REQUIRE_UI_THREAD();
 	AutoLock lock_scope(this);
-	if (!control->m_Browser.get())   
+	if (!control->m_Browser.get())   					
 	{
-		debugPrint("Browser Created.\n");
+		debugPrint("Browser Created.\n");						   
 		control->m_Browser = browser;
 		control->m_BrowserHwnd = WINDOW_HANDLE(browser);		
-
-		// Hook the mouse
-		//DWORD threadId = GetWindowThreadProcessId(browser->GetWindowHandle(), NULL);
-		//hook = SetWindowsHookEx(WH_MOUSE, MouseHook, NULL, threadId);
 	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-LRESULT CALLBACK WebKitHandler::MouseHook(int nCode, WPARAM wp, LPARAM lp)
-{
-	MOUSEHOOKSTRUCT *pmh = (MOUSEHOOKSTRUCT *) lp;
-
-	if(nCode >= 0)
-	{
-		if(wp == WM_RBUTTONDOWN || wp == WM_RBUTTONUP) 
-		{
-			return 1;
-		}
-	}
-	return CallNextHookEx(NULL, nCode, wp, lp);   
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,8 +34,7 @@ void WebKitHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
 	REQUIRE_UI_THREAD();
 	if(control->m_BrowserHwnd == WINDOW_HANDLE(browser))
-	{
-		UnhookWindowsHookEx(hook);
+	{		
 		control->DestroyCEFBrowser();
 	}	
 }
@@ -109,5 +89,23 @@ bool WebKitHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, KeyEventType type,
 		control->SetModifiedFlag(TRUE);
 	}
 	return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+void WebKitHandler::OnContextCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context)
+{
+	this->context = context;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+void WebKitHandler::OnContextReleased(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context)
+{
+	this->context = NULL;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+void WebKitHandler::OnUncaughtException(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Exception> exception, CefRefPtr<CefV8StackTrace> stackTrace)
+{
+
 }
 

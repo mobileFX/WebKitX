@@ -22,6 +22,21 @@
 #define REQUIRE_IO_THREAD()   ASSERT(CefCurrentlyOn(TID_IO));
 #define REQUIRE_FILE_THREAD() ASSERT(CefCurrentlyOn(TID_FILE));
 
+template <class T, class A>
+T join(const A &begin, const A &end, const T &t)
+{
+	T result;
+	for (A it=begin;
+		it!=end;
+		it++)
+	{
+		if (!result.empty())
+			result.append(t);
+		result.append(*it);
+	}
+	return result;
+}
+
 class CWebKitXCtrl;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,13 +45,13 @@ class WebKitHandler :
 	public CefLifeSpanHandler,
 	public CefLoadHandler,
 	public CefKeyboardHandler,
-	public CefRenderHandler
-	
+	public CefRenderHandler,
+	public CefV8ContextHandler
 {
 public:
 
 	CWebKitXCtrl* control;
-	HHOOK hook;
+	CefRefPtr<CefV8Context> context;
 
 	WebKitHandler(CWebKitXCtrl* control);
 	~WebKitHandler(void);
@@ -47,6 +62,7 @@ public:
 	virtual CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE {	return this; } 
 	virtual CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() OVERRIDE { return this; }
 	virtual CefRefPtr<CefRenderHandler> GetRenderHandler() OVERRIDE { return this; }
+	virtual CefRefPtr<CefV8ContextHandler> GetV8ContextHandler() OVERRIDE { return this; }	
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// CefLifeSpanHandler callbacks
@@ -61,11 +77,10 @@ public:
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	// CefKeyboardHandler methods.
-	virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser, KeyEventType type, int code, int modifiers, bool isSystemKey, bool isAfterJavaScript) OVERRIDE;
-	static LRESULT CALLBACK MouseHook(int nCode, WPARAM wp, LPARAM lp);
+	virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser, KeyEventType type, int code, int modifiers, bool isSystemKey, bool isAfterJavaScript) OVERRIDE;	
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
-	// CefRenderHandler (Off Screen Rendering)
+	// TODO: CefRenderHandler (Off Screen Rendering)
 	virtual bool GetViewRect(CefRefPtr<CefBrowser> browser,	CefRect& rect) OVERRIDE { return false; }
 	virtual bool GetScreenRect(CefRefPtr<CefBrowser> browser, CefRect& rect) OVERRIDE { return false; }
 	virtual bool GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int viewY, int& screenX, int& screenY) OVERRIDE { return false; }
@@ -73,6 +88,12 @@ public:
 	virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) OVERRIDE {}
 	virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects, const void* buffer) OVERRIDE {}
 	virtual void OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor) OVERRIDE {}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	// CefV8ContextHandler
+	virtual void OnContextCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context) OVERRIDE;
+	virtual void OnContextReleased(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context) OVERRIDE;
+	virtual void OnUncaughtException(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Exception> exception, CefRefPtr<CefV8StackTrace> stackTrace) OVERRIDE;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////
 	IMPLEMENT_REFCOUNTING(WebKitHandler);

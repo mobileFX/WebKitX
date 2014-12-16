@@ -162,6 +162,7 @@
   <ItemGroup>
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="strings.hpp" />
     <ClInclude Include="WebKitHandler.h" />
     <ClInclude Include="WebKitV8Extension.h" />
     <ClInclude Include="WebKitX.h" />

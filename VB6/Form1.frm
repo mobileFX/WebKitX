@@ -58,7 +58,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-Private Const S_HTML = "<html><body><button id='btn1'>Hello CEF</button><br><div id='div1'>This is <span>some</span> text</div><br><div id='div2'>This is <span>some</span> text</div><br><script>alert('test');</script></body></html>"
+Private Const S_HTML = "<html><body><button id='btn1'>Hello CEF Ελληνικά</button><br><div id='div1'>This is <span>some</span> text</div><br><div id='div2'>This is <span>some</span> text</div><br><script>alert('test');</script></body></html>"
 
 Private Sub Form_Resize()
     On Error Resume Next

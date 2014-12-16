@@ -4,6 +4,8 @@
 #include "afxdialogex.h"
 #include "WebKitHandler.h"
 
+#include "strings.hpp"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -104,7 +106,7 @@ CWebKitXCtrl::CWebKitXCtrl() :
 	m_Browser(NULL), 
 	m_MainHwnd(NULL), 
 	m_BrowserHwnd(NULL), 
-	SIG_READY(NULL),
+	SIG_HTML_READY(NULL),
 	CEF_BROWSER_CREATED(false),
 	m_ActiveXCreated(VARIANT_FALSE),
 	hook(NULL),
@@ -119,8 +121,11 @@ CWebKitXCtrl::CWebKitXCtrl() :
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 CWebKitXCtrl::~CWebKitXCtrl()
 {	
-	if(SIG_READY)
-		CloseHandle(SIG_READY);
+	if(SIG_HTML_READY)
+	{
+		CloseHandle(SIG_HTML_READY);
+		SIG_HTML_READY=NULL;
+	}
 
 	if(AmbientUserMode() && m_Browser)
 	{		
@@ -131,8 +136,7 @@ CWebKitXCtrl::~CWebKitXCtrl()
 		if(hook)
 			UnhookWindowsHookEx(hook);
 	}
-
-	selectedNode = NULL;
+	
 	debugPrint("CWebKitXCtrl Terminated %d.\n", (int)this);
 }
 
@@ -238,7 +242,7 @@ void CWebKitXCtrl::CreateCEFBrowser()
 	if(CefBrowser::CreateBrowser(info,	static_cast<CefRefPtr<CefClient>>(g_handler), "about:blank", browser_settings))
 	{				
 		WebKitV8Extension::RegisterExtension(this);
-		SIG_READY = CreateEvent(NULL, true, false, NULL);		
+		SIG_HTML_READY = CreateEvent(NULL, true, false, NULL);		
 	}
 }
 
@@ -304,7 +308,7 @@ void CWebKitXCtrl::OnContextInitialized()
 	{				
 		//SetTimer(IDT_TIMER, 1, TimerProc);
 		//CefRunMessageLoop();				
-		SIG_READY = CreateEvent(NULL, true, false, NULL);
+		SIG_HTML_READY = CreateEvent(NULL, true, false, NULL);
 	}
 }
 
@@ -391,7 +395,31 @@ LRESULT CWebKitXCtrl::CancelMessage(WPARAM wParam, LPARAM lParam)
 // ==================================================================================================================================
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+OLE_HANDLE CWebKitXCtrl::hBrowserHWND(void)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	return (OLE_HANDLE) m_BrowserHwnd;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+VARIANT_BOOL CWebKitXCtrl::Created(void)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	return m_ActiveXCreated;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+VARIANT_BOOL CWebKitXCtrl::Modified(void)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());	
+	return m_bModified ? VARIANT_TRUE : VARIANT_FALSE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Add Event Listener to Visual Basic 6 Class Public Function
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CWebKitXCtrl::addEventListenerEx(LPCTSTR Selector, LPCTSTR Event, IDispatch* vbObject, LPCTSTR vbObjectFunctionName, VARIANT_BOOL UseCapture)
 {
 	USES_CONVERSION;
@@ -555,13 +583,6 @@ template<typename F, typename P> void CWebKitXCtrl::__addEventHandler(std::strin
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-VARIANT_BOOL CWebKitXCtrl::Modified(void)
-{
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());	
-	return m_bModified ? VARIANT_TRUE : VARIANT_FALSE;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CWebKitXCtrl::OpenURL(LPCTSTR URL)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());		
@@ -586,20 +607,11 @@ void CWebKitXCtrl::Reload(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CWebKitXCtrl::SetHTML(LPCTSTR HTML)
 {
-	USES_CONVERSION;
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();	
-
-	std::string html(T2A(HTML));
-	if(m_Editable=VARIANT_TRUE)
-	{
-		html = Replace(html, "<script", "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script");
-		html = Replace(html, "</script>", "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->");
-	}
-
 	m_Browser->StopLoad();
-	m_Browser->GetMainFrame()->LoadStringW(CefString(html), "http://localhost");	
+	m_Browser->GetMainFrame()->LoadStringW(LPCTSTR_to_CefString(HTML,m_Editable==VARIANT_TRUE), "http://localhost");	
 	SetModifiedFlag(FALSE);
 }
 
@@ -609,53 +621,40 @@ void CWebKitXCtrl::LoadHTML(LPCTSTR HTML, LPCTSTR URL)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();
-
-	USES_CONVERSION;
-	std::string html(T2A(HTML));
-	if(m_Editable=VARIANT_TRUE)
-	{
-		html = Replace(html, "<script", "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script");
-		html = Replace(html, "</script>", "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->");
-	}
-
 	m_Browser->StopLoad();
-	m_Browser->GetMainFrame()->LoadStringW(CefString(html), CefString(URL));	
+	m_Browser->GetMainFrame()->LoadStringW(LPCTSTR_to_CefString(HTML,m_Editable==VARIANT_TRUE), CefString(URL));	
 	SetModifiedFlag(FALSE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 BSTR CWebKitXCtrl::GetHTML(void)
 {	
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	CString strResult;
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());	
 	if(AmbientUserMode() && m_Browser)
 	{
-		ResetEvent(SIG_READY);
-		CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteGetSource, m_Browser->GetMainFrame()));
-		WaitForSingleObject(SIG_READY, COMMAND_TIMEOUT_HIGH);
-		
-		if(m_Editable=VARIANT_TRUE)
-		{
-			response = Replace(response, "<!--8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5<script", "<script");
-			response = Replace(response, "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->", "</script>");
-		}
+		response = "";
 
-		strResult=response.c_str();
+		// Get HTML from CEF UI Thread
+		ResetEvent(SIG_HTML_READY);
+		CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteGetSource, m_Browser->GetMainFrame()));
+		WaitForSingleObject(SIG_HTML_READY, COMMAND_TIMEOUT_HIGH);		
 	}
-	return strResult.AllocSysString();
+	return response;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CWebKitXCtrl::ExecuteGetSource(CefRefPtr<CefFrame> frame)
 {	
-	#ifdef CEF_VERSION_1
-	g_instnace->response = frame->GetSource();
+	bool CleanHTML = true; //g_instnace->m_Editable==VARIANT_TRUE;
+
+	#ifdef CEF_VERSION_1	
+	g_instnace->response = CefString_to_BSTR(frame->GetSource(), CleanHTML);	 
 	#endif
 
 	#ifdef CEF_VERSION_3
 	#endif
 
-	SetEvent(g_instnace->SIG_READY);
+	SetEvent(g_instnace->SIG_HTML_READY);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -776,22 +775,27 @@ void CWebKitXCtrl::__set_attribute(std::string selector, std::string attrName, s
 	class Visitor : public CefDOMVisitor
 	{
 	public:
-		Visitor() {}
+		std::string selector;
+		std::string attrName;
+		std::string attrValue;		
+		Visitor(std::string selector, std::string attrName, std::string attrValue) 
+		{
+			this->selector = selector;
+			this->attrName = attrName;
+			this->attrValue = attrValue;
+		}
 		virtual void Visit(CefRefPtr<CefDOMDocument> document) 
 		{						
 			CefRefPtr<CefDOMNode> body = document->GetBody();
 			if(body.get())
 			{
-				body->SetElementAttribute(g_instnace->attrName, g_instnace->attrValue);				
+				body->SetElementAttribute(attrName, attrValue);				
 			}				
 		}
 		IMPLEMENT_REFCOUNTING(Visitor);
 	};	
 
-	this->selector = selector;
-	this->attrName = attrName;
-	this->attrValue = attrValue;
-	m_Browser->GetMainFrame()->VisitDOM(new Visitor);
+	m_Browser->GetMainFrame()->VisitDOM(new Visitor(selector, attrName, attrValue));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -802,22 +806,26 @@ void CWebKitXCtrl::__set_style(std::string selector, std::string attrName, std::
 	class Visitor : public CefDOMVisitor
 	{
 	public:
-		Visitor() {}
+		std::string selector;
+		std::string attrName;
+		std::string attrValue;		
+		Visitor(std::string selector, std::string attrName, std::string attrValue) 
+		{
+			this->selector = selector;
+			this->attrName = attrName;
+			this->attrValue = attrValue;
+		}
 		virtual void Visit(CefRefPtr<CefDOMDocument> document) 
 		{			
 			CefRefPtr<CefDOMNode> body = document->GetBody();
 			if(body.get())
 			{
-				body->SetElementAttribute(g_instnace->attrName, g_instnace->attrValue);				
+				body->SetElementAttribute(attrName, attrValue);				
 			}							
 		}
 		IMPLEMENT_REFCOUNTING(Visitor);
 	};	
-
-	this->selector = selector;
-	this->attrName = attrName;
-	this->attrValue = attrValue;
-	m_Browser->GetMainFrame()->VisitDOM(new Visitor);
+	m_Browser->GetMainFrame()->VisitDOM(new Visitor(selector, attrName, attrValue));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -865,9 +873,8 @@ CefRefPtr<CefDOMNode> CWebKitXCtrl::__selectSingleNode(std::string selector, boo
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());	
 	REQUIRE_UI_THREAD();		
-	selectedNode = NULL;
-	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteSelectNode, selector, sel));
-	return selectedNode;
+	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteSelectNode, selector, sel));	
+	return NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -899,7 +906,7 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool sel)
 			//"var mousedownEvent = document.createEvent(\"MouseEvent\");\n"
 			//"mousedownEvent.initMouseEvent(\"mousedown\",false,false,window,0,0,0,0,0,0,0,0,0,1,target);\n"				
 			//"target.dispatchEvent(mousedownEvent);\n"
-			
+
 			CefRefPtr<CefV8Value> retval;
 			CefRefPtr<CefV8Exception> exception;
 			g_instnace->v8context->Eval(code.c_str(), retval, exception);			
@@ -908,16 +915,3 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool sel)
 	}	
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-OLE_HANDLE CWebKitXCtrl::hBrowserHWND(void)
-{
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	return (OLE_HANDLE) m_BrowserHwnd;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-VARIANT_BOOL CWebKitXCtrl::Created(void)
-{
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	return m_ActiveXCreated;
-}

@@ -20,6 +20,7 @@
     <ClInclude Include="WebKitX.h" />
     <ClInclude Include="WebKitXCtrl.h" />
     <ClInclude Include="WebKitV8Extension.h" />
+    <ClInclude Include="strings.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebKitX.rc" />

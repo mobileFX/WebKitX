@@ -35,25 +35,21 @@ class CWebKitXCtrl :
 
 public:
 		
+	static bool CEF_INITIALIZED;
 	static CWebKitXCtrl* g_instnace;
-	CefRefPtr<WebKitHandler> g_handler;	
-	HANDLE SIG_READY;
+
 	CefRefPtr<CefBrowser> m_Browser;		// The child browser window
 	CefRefPtr<CefV8Context> v8context;		// V8 Context
+	HANDLE SIG_HTML_READY;					// Wait Event for HTML source to be collected
 	CefWindowHandle m_MainHwnd;				// The main frame window handle
-	CefWindowHandle m_BrowserHwnd;			// The child browser window handle	
-	CefRefPtr<CefDOMNode> selectedNode;
+	CefWindowHandle m_BrowserHwnd;			// The child browser window handle		
 	HHOOK hook;	
-	static bool CEF_INITIALIZED;
 	bool CEF_BROWSER_CREATED;
-	std::string response;
-	std::string selector;
-	std::string attrName;
-	std::string attrValue;		
+	CComBSTR response;
 	VARIANT_BOOL m_Editable;
 	VARIANT_BOOL m_ActiveXCreated;
 	UINT UID_COUNTER;
-	bool LoadingHTML;
+	bool LoadingHTML;		
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	CWebKitXCtrl();

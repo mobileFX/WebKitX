@@ -9,7 +9,7 @@
     <LocalDebuggerCommandArguments>D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\VB6\Project1.vbp</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (CEF1)|Win32'">
-    <LocalDebuggerCommand>D:\mobileFX\Projects\Software\Coconut\IDE\Studio\Coconut2D.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>C:\Program Files (x86)\Microsoft Visual Studio\VB98\VB6.EXE</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>D:\mobileFX\Projects\Software\Coconut\IDE\WebKitX\VB6\Project1.vbp</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)..\Studio\</LocalDebuggerWorkingDirectory>

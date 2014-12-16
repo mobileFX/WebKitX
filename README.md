@@ -335,6 +335,7 @@ If this project is useful for you, you can help me sustain it either by contribu
 [<img src="donate.png">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MGVFWZBWKFTPN)
 
 
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/mobileFX/webkitx/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 
 

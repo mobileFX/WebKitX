@@ -133,7 +133,6 @@ CWebKitXCtrl::~CWebKitXCtrl()
 	}
 
 	selectedNode = NULL;
-
 	debugPrint("CWebKitXCtrl Terminated %d.\n", (int)this);
 }
 
@@ -743,6 +742,7 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 	else
 	{		
 		focusNodes = target;
+		
 		FireOnMouseDown();		
 		if(!LoadingHTML)
 			FireOnFocus();		

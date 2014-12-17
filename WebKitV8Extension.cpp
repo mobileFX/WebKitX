@@ -1,5 +1,26 @@
 #include "StdAfx.h"
 #include "WebKitV8Extension.h"
+#include "WebKitXCtrl.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+void WebKitV8Extension::RegisterExtension(CWebKitXCtrl* control)
+{
+	// Register a V8 extension that calls native
+	// methods implemented in WebKitV8Extension.
+
+	std::string sink =  "var cef;"
+		"if(!cef) cef = {};"
+		"(function() {"
+		"  cef.__defineSetter__('selectedNode', function(uid) {"
+		"    native function __selectedNode();"
+		"    __selectedNode(uid);"
+		"  });"
+		"})();";
+
+	control->v8handler = new WebKitV8Extension(control);
+
+	CefRegisterExtension("v8/WebKitX", sink, control->v8handler);
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 WebKitV8Extension::WebKitV8Extension(CWebKitXCtrl* control)

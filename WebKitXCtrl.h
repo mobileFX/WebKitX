@@ -6,6 +6,7 @@
 //$(SolutionDir)..\Studio\
 //$(SolutionDir)\CEF\CEF1\DLLs\
 
+#include "comutil.h"
 
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
@@ -21,7 +22,7 @@
 #define COMMAND_TIMEOUT_HIGH	30000
 
 typedef LONG (__stdcall *VISUAL_BASIC_6_FN_PTR)(LONG);
-std::string Replace(std::string str, const std::string& find, const std::string& replace);
+std::string Replace(std::string str, const std::string& find, const std::string& replace);																													\
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CWebKitXCtrl : 
@@ -40,16 +41,23 @@ public:
 
 	CefRefPtr<CefBrowser> m_Browser;		// The child browser window
 	CefRefPtr<CefV8Context> v8context;		// V8 Context
+	WebKitV8Extension* v8handler;
 	HANDLE SIG_HTML_READY;					// Wait Event for HTML source to be collected
+	HANDLE SIG_HTML_SELECTION_READY;		// Wait Event for selected html
+	HANDLE SIG_JAVASCRIPT_READY;			// Wait Event for selected html
+	HANDLE SIG_TIDY_HTML_READY;
 	CefWindowHandle m_MainHwnd;				// The main frame window handle
 	CefWindowHandle m_BrowserHwnd;			// The child browser window handle		
 	HHOOK hook;	
 	bool CEF_BROWSER_CREATED;
-	CComBSTR response;
+	CComBSTR document_html;
+	CComBSTR selection;
 	VARIANT_BOOL m_Editable;
 	VARIANT_BOOL m_ActiveXCreated;
 	UINT UID_COUNTER;
-	bool LoadingHTML;		
+	bool LoadingHTML;	
+	CComBSTR jsresult;
+	std::vector<std::string> EditorCommands;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	CWebKitXCtrl();
@@ -82,7 +90,9 @@ public:
 	static void ExecuteGetSource(CefRefPtr<CefFrame> frame);
 	static void ExecuteEditable(CefRefPtr<CefFrame> frame);		
 	static void ExecuteAddEventEx(std::string elementID, std::string eventType, IDispatch* vbObject, std::string vbObjectFunctionName, VARIANT_BOOL UseCapture);
-	static void ExecuteSelectNode(std::string selector, bool sel);
+	static void ExecuteSelectNode(std::string selector, bool MoveCaret, bool SelectContents);
+	static void ExecuteCode(LPCTSTR JavaScript);
+	static void ExecuteTidy(LPCTSTR HTML);
 		
 	template<typename F, typename P> static void ExecuteAddEvent(std::string elementID, std::string eventType, F handler, VARIANT_BOOL UseCapture);
 	template<typename F, typename P> void __addEventHandler(std::string elementID, std::string eventType, F handler, VARIANT_BOOL UseCapture);
@@ -92,9 +102,8 @@ public:
 	void HandleDOMEvent(CefRefPtr<CefDOMEvent>* e);
 
 	void AttachEditDOMEvents();
-	void __set_attribute(std::string selector, std::string attrName, std::string attrValue);
-	void __set_style(std::string selector, std::string attrName, std::string attrValue);		
-	CefRefPtr<CefDOMNode> __selectSingleNode(std::string selector, bool sel);	
+	void __set_attribute(std::string selector, std::string attrName, std::string attrValue);	
+	CefRefPtr<CefDOMNode> __selectSingleNode(std::string selector, bool MoveCaret, bool SelectContents);	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX API
@@ -110,10 +119,14 @@ public:
 	void addEventListenerEx(LPCTSTR Selector, LPCTSTR Event, IDispatch* vbObject, LPCTSTR vbObjectFunctionName, VARIANT_BOOL UseCapture);	
 	void SetStyle(LPCTSTR Selector, LPCTSTR StyleName, LPCTSTR StyleValue);
 	VARIANT_BOOL Modified(void);	
-	void SelectElement(LPCTSTR Selector, VARIANT_BOOL Select);	
+	void SelectElement(LPCTSTR Selector, VARIANT_BOOL MoveCaret, VARIANT_BOOL SelectContents);
 	OLE_HANDLE hBrowserHWND(void);
 	void LoadHTML(LPCTSTR HTML, LPCTSTR URL);
 	VARIANT_BOOL Created(void);
+	BSTR SelectedHTML(VARIANT_BOOL FullHTML);
+	void OnEditableChanged(void);	
+	BSTR ExecJavaScript(LPCTSTR Code);
+	BSTR ExecCommand(LONG id, VARIANT& Params);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX Events
@@ -142,7 +155,7 @@ public:
 		FireEvent(eventidOnReady, EVENT_PARAM(VTS_NONE));
 	}
 
-	//---------------------------------------------------------------------------------------------------------------------------------------------
+	//---------------------------------------------------------------------------------------------------------------------------------------------	
 	void FireOnCreate() { SetTimer(eventidOnCreate, 10, OnCreateTimerProc); }	
 	static void CALLBACK OnCreateTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnCreateTimer(); }	
 	void OnCreateTimer() { KillTimer(eventidOnCreate); OnCreate(); }
@@ -179,14 +192,28 @@ public:
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------
+	static const UINT_PTR ON_MODIFIED_TIMER = 1002;	
+	void FireOnModified() { KillTimer(ON_MODIFIED_TIMER); SetTimer(ON_MODIFIED_TIMER, 1000, OnModifiedTimerProc); }	
+	static void CALLBACK OnModifiedTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnModifiedTimer(); }	
+	void OnModifiedTimer() { KillTimer(ON_MODIFIED_TIMER); OnModified(); }
 	void OnModified(void)
 	{
+		debugPrint("OnModified\n");
 		SetModifiedFlag(TRUE);
 		FireEvent(eventidOnModified, EVENT_PARAM(VTS_NONE));
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------
-	void OnEditableChanged(void);	
+	static const UINT_PTR ON_SELECTION_CHANGED_TIMER = 1003;	
+	void FireOnSelectionChanged() { KillTimer(ON_SELECTION_CHANGED_TIMER); SetTimer(ON_SELECTION_CHANGED_TIMER, 1000, OnSelectionChangedTimerProc); }	
+	static void CALLBACK OnSelectionChangedTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnSelectionChangedTimer(); }	
+	void OnSelectionChangedTimer() { KillTimer(ON_SELECTION_CHANGED_TIMER); OnSelectionChanged(); }
+	void OnSelectionChanged(void)
+	{
+		//CComBSTR html(SelectedHTML(VARIANT_FALSE));
+		debugPrint("OnSelectionChanged: %s\n", _com_util::ConvertBSTRToString(g_instnace->selection));		
+		FireEvent(eventidOnSelectionChanged, EVENT_PARAM(VTS_BSTR VTS_BSTR), document_html, selection);		
+	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// TODO: Handle mouse move to prevent CSS3 hover styles during editing
@@ -224,27 +251,35 @@ public:
 	DECLARE_EVENT_MAP()
 
 	enum 
-	{						
-		dispidCreated = 16L,
-		dispidLoadHTML = 15L,
-		dispidhBrowserHWND = 14L,
-		dispidSelectElement = 13L,
-		eventidOnModified = 4L,
-		dispidEditable = 12,
-		eventidOnFocus = 3L,
-		dispidSetStyle = 11L,
-		dispidRepaint = 10L,		
-		dispidaddEventListenerEx = 8L,
+	{								
+		dispidTidyHTML = 20L,
+		dispidExecCommand = 19L,
+		dispidExecJavaScript = 18L,
 		dispidaddEventListener = 7L,
-		dispidReload = 6L,
-		dispidModified = 5L,
-		eventidOnCreate = 2L,		
-		eventidOnReady = 1L,
-		dispidPreview = 4L,
+		dispidaddEventListenerEx = 8L,
+		dispidCreated = 16L,
 		dispidEdit = 3L,
+		dispidEditable = 12,
+		dispidhBrowserHWND = 14L,
+		dispidHTML = 2L,
+		dispidLoadHTML = 15L,
+		dispidModified = 5L,
 		dispidOpenURL = 1L,
-		dispidHTML = 2L
+		dispidPreview = 4L,
+		dispidReload = 6L,
+		dispidRepaint = 10L,		
+		dispidSelectedHTML = 17L,
+		dispidSelectElement = 13L,
+		dispidSetStyle = 11L,
+
+		eventidOnSelectionChanged = 5L,
+		eventidOnCreate = 2L,		
+		eventidOnFocus = 3L,
+		eventidOnModified = 4L,
+		eventidOnReady = 1L
 	};	
+protected:
+	BSTR TidyHTML(LPCTSTR HTML);
 };
 
 #endif

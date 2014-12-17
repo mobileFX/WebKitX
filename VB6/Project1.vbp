@@ -3,6 +3,7 @@ Form=Form1.frm
 Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#C:\Windows\SysWOW64\stdole2.tlb#OLE Automation
 Object={7493F856-8B5B-47C2-8336-71D5CA8433D9}#1.0#0; WebKitX.ocx
 Module=Module1; Module1.bas
+Object={BCA00000-0F85-414C-A938-5526E9F1E56A}#4.0#0; cmax40.dll
 IconForm="Form1"
 Startup="Form1"
 Command32=""

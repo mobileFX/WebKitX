@@ -5,6 +5,7 @@
     <None Include="WebKitX.rgs" />
     <None Include="README.md" />
     <None Include=".gitignore" />
+    <None Include="beautify-html.js" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />

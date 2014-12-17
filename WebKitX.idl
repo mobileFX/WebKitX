@@ -11,6 +11,57 @@ library WebKitXLib
 {
 	importlib(STDOLE_TLB);
 
+	typedef enum EDIT_COMMAND
+	{
+		EDIT_CMD_BACKCOLOR,
+		EDIT_CMD_BOLD,
+		EDIT_CMD_CONTENTREADONLY,
+		EDIT_CMD_COPY,
+		EDIT_CMD_CREATELINK,
+		EDIT_CMD_CUT,
+		EDIT_CMD_DECREASEFONTSIZE,
+		EDIT_CMD_DELETE,
+		EDIT_CMD_ENABLEINLINETABLEEDITING,
+		EDIT_CMD_ENABLEOBJECTRESIZING,
+		EDIT_CMD_FONTNAME,
+		EDIT_CMD_FONTSIZE,
+		EDIT_CMD_FORECOLOR,
+		EDIT_CMD_FORMATBLOCK,
+		EDIT_CMD_FORWARDDELETE,
+		EDIT_CMD_HEADING,
+		EDIT_CMD_HILITECOLOR,
+		EDIT_CMD_INCREASEFONTSIZE,
+		EDIT_CMD_INDENT,
+		EDIT_CMD_INSERTBRONRETURN,
+		EDIT_CMD_INSERTHORIZONTALRULE,
+		EDIT_CMD_INSERTHTML,
+		EDIT_CMD_INSERTIMAGE,
+		EDIT_CMD_INSERTORDEREDLIST,
+		EDIT_CMD_INSERTUNORDEREDLIST,
+		EDIT_CMD_INSERTPARAGRAPH,
+		EDIT_CMD_INSERTTEXT,
+		EDIT_CMD_ITALIC,
+		EDIT_CMD_JUSTIFYCENTER,
+		EDIT_CMD_JUSTIFYFULL,
+		EDIT_CMD_JUSTIFYLEFT,
+		EDIT_CMD_JUSTIFYRIGHT,
+		EDIT_CMD_OUTDENT,
+		EDIT_CMD_PASTE,
+		EDIT_CMD_REDO,
+		EDIT_CMD_REMOVEFORMAT,
+		EDIT_CMD_SELECTALL,
+		EDIT_CMD_STRIKETHROUGH,
+		EDIT_CMD_SUBSCRIPT,
+		EDIT_CMD_SUPERSCRIPT,
+		EDIT_CMD_UNDERLINE,
+		EDIT_CMD_UNDO,
+		EDIT_CMD_UNLINK,
+		EDIT_CMD_USECSS,
+		EDIT_CMD_STYLEWITHCSS
+	} EDIT_COMMAND;
+
+
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//  Primary dispatch interface for CWebKitXCtrl
 	[ 		
@@ -33,11 +84,15 @@ library WebKitXLib
 			[id(7)] void addEventListener([in] BSTR Selector,[in] BSTR Event,[in] LONG AddressOfEventHandler, [in] VARIANT_BOOL UseCapture);
 			[id(8)] void addEventListenerEx([in] BSTR Selector, [in] BSTR Event, [in] IDispatch* vbObject, [in] BSTR vbObjectFunctionName, [in] VARIANT_BOOL UseCapture);
 			[id(10)] void Repaint(void);
-			[id(11)] void SetStyle(BSTR Selector, BSTR StyleName, BSTR StyleValue);			
-			[id(13)] void SelectElement(BSTR Selector, VARIANT_BOOL Select);
+			[id(11)] void SetStyle([in] BSTR Selector, [in] BSTR StyleName, [in] BSTR StyleValue);			
+			[id(13)] void SelectElement([in] BSTR Selector, [in] VARIANT_BOOL MoveCaret, [in] VARIANT_BOOL SelectContents);			
 			[id(14)] OLE_HANDLE hBrowserHWND(void);
 			[id(15)] void LoadHTML(BSTR HTML, BSTR URL);
 			[id(16)] VARIANT_BOOL Created(void);
+			[id(17)] BSTR SelectedHTML([in] VARIANT_BOOL FullHTML);
+			[id(18)] BSTR ExecJavaScript([in] BSTR Code);
+			[id(19)] BSTR ExecCommand([in] EDIT_COMMAND id, [in, optional] VARIANT Params);
+			[id(20)] BSTR TidyHTML(BSTR HTML);
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +110,8 @@ library WebKitXLib
 			[id(2)] void OnCreate();
 			[id(3)] void OnFocus(BSTR NodePath);
 			[id(4)] void OnModified(void);
-			[id(DISPID_MOUSEDOWN)] void MouseDown(SHORT Button, SHORT Shift, OLE_XPOS_PIXELS x, OLE_YPOS_PIXELS y);
+			[id(DISPID_MOUSEDOWN)] void MouseDown(SHORT Button, SHORT Shift, OLE_XPOS_PIXELS x, OLE_YPOS_PIXELS y);			
+			[id(5)] void OnSelectionChanged(BSTR DocumentHTML, BSTR SelectionHTML);
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

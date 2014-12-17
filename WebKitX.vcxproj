@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="beautify-html.js" />
     <None Include="README.md" />
     <None Include="WebKitX.rgs" />
     <None Include="WebKitXCtrl.bmp" />

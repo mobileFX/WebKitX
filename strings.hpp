@@ -28,10 +28,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#pragma comment(lib, "comsuppw.lib")
+
 /////////////////////////////////////////////////////////////////////////////
 std::string rxrepace(std::string buff, std::string find, std::string replace)
 {		
-	std::regex rx(find); 
+	std::regex rx(find, std::regex_constants::ECMAScript|std::regex_constants::icase); 
+	
+
 	buff = std::regex_replace(buff, rx, replace);
 	return buff;
 }
@@ -67,7 +71,7 @@ std::string html_for_preview(std::string html)
 	html = Replace(html, "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->", "</script>");
 
 	// Remove content editable
-	html = rxrepace(html, "\\s*contenteditable\\s*=\\s*\"true\"\\s*", "");
+	html = rxrepace(html, "\\s*contenteditable\\s*=\\s*\"(?:true|false)\"\\s*", "");
 
 	// Remove __uid attributes
 	html = rxrepace(html, "\\s*__uid\\s*=\\s*\"__uid_\\d+\"\\s*", "");
@@ -76,11 +80,11 @@ std::string html_for_preview(std::string html)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-CefString LPCTSTR_to_CefString(LPCTSTR buff, bool ForEdit)
+CefString LPCTSTR_to_CefString(LPCTSTR buff, bool DisableScriptBlocks)
 {
 	CComBSTR _buff(buff);
 	std::string utf8 = BSTR_to_UTF8(_buff.m_str, _buff.Length());
-	if(ForEdit)	utf8 = html_for_edit(utf8);
+	if(DisableScriptBlocks)	utf8 = html_for_edit(utf8);
 	CefString _out(utf8);
 	return _out;
 }
@@ -101,9 +105,23 @@ CComBSTR CefString_to_BSTR(CefString buff, bool CleanHTML)
 {
 	std::string _buff(buff);
 	if(CleanHTML) _buff = html_for_preview(_buff);
-	CComBSTR out(UTF8_to_BSTR(_buff.c_str(), buff.length()));
+	CComBSTR out(UTF8_to_BSTR(_buff.c_str()));
 	return out;
 }
+
+/////////////////////////////////////////////////////////////////////////////
+std::wstring s2ws(const std::string& s)
+{
+	int len;
+	int slength = (int)s.length() + 1;
+	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0); 
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
+}
+
 
 /*
 /////////////////////////////////////////////////////////////////////////////

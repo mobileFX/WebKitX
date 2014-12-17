@@ -4,6 +4,7 @@
 #include "afxdialogex.h"
 #include "WebKitHandler.h"
 
+
 #include "strings.hpp"
 
 #ifdef _DEBUG
@@ -42,8 +43,8 @@ END_MESSAGE_MAP()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Dispatch map
 BEGIN_DISPATCH_MAP(CWebKitXCtrl, COleControl)
+	DISP_STOCKPROP_HWND()
 	DISP_FUNCTION_ID(CWebKitXCtrl, "OpenURL", dispidOpenURL, OpenURL, VT_EMPTY, VTS_BSTR)
-	DISP_PROPERTY_EX_ID(CWebKitXCtrl, "HTML", dispidHTML, GetHTML, SetHTML, VT_BSTR)	
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Edit", dispidEdit, Edit, VT_EMPTY, VTS_NONE)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Preview", dispidPreview, Preview, VT_EMPTY, VTS_NONE)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Modified", dispidModified, Modified, VT_BOOL, VTS_NONE)
@@ -52,12 +53,16 @@ BEGIN_DISPATCH_MAP(CWebKitXCtrl, COleControl)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "addEventListenerEx", dispidaddEventListenerEx, addEventListenerEx, VT_EMPTY, VTS_BSTR VTS_BSTR VTS_DISPATCH VTS_BSTR VTS_BOOL)	
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Repaint", dispidRepaint, Repaint, VT_EMPTY, VTS_NONE)	
 	DISP_FUNCTION_ID(CWebKitXCtrl, "SetStyle", dispidSetStyle, SetStyle, VT_EMPTY, VTS_BSTR VTS_BSTR VTS_BSTR)
-	DISP_PROPERTY_NOTIFY_ID(CWebKitXCtrl, "Editable", dispidEditable, m_Editable, OnEditableChanged, VT_BOOL)	
-	DISP_FUNCTION_ID(CWebKitXCtrl, "SelectElement", dispidSelectElement, SelectElement, VT_EMPTY, VTS_BSTR VTS_BOOL)
-	DISP_STOCKPROP_HWND()	
+	DISP_FUNCTION_ID(CWebKitXCtrl, "SelectElement", dispidSelectElement, SelectElement, VT_EMPTY, VTS_BSTR VTS_BOOL VTS_BOOL)		
 	DISP_FUNCTION_ID(CWebKitXCtrl, "hBrowserHWND", dispidhBrowserHWND, hBrowserHWND, VT_HANDLE, VTS_NONE)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "LoadHTML", dispidLoadHTML, LoadHTML, VT_EMPTY, VTS_BSTR VTS_BSTR)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Created", dispidCreated, Created, VT_BOOL, VTS_NONE)
+	DISP_FUNCTION_ID(CWebKitXCtrl, "SelectedHTML", dispidSelectedHTML, SelectedHTML, VT_BSTR, VTS_BOOL)	
+	DISP_PROPERTY_NOTIFY_ID(CWebKitXCtrl, "Editable", dispidEditable, m_Editable, OnEditableChanged, VT_BOOL)	
+	DISP_PROPERTY_EX_ID(CWebKitXCtrl, "HTML", dispidHTML, GetHTML, SetHTML, VT_BSTR)	
+	DISP_FUNCTION_ID(CWebKitXCtrl, "ExecJavaScript", dispidExecJavaScript, ExecJavaScript, VT_BSTR, VTS_BSTR)
+	DISP_FUNCTION_ID(CWebKitXCtrl, "ExecCommand", dispidExecCommand, ExecCommand, VT_BSTR, VTS_I4 VTS_VARIANT)
+	DISP_FUNCTION_ID(CWebKitXCtrl, "TidyHTML", dispidTidyHTML, TidyHTML, VT_BSTR, VTS_BSTR)
 END_DISPATCH_MAP()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,8 +71,9 @@ BEGIN_EVENT_MAP(CWebKitXCtrl, COleControl)
 	EVENT_CUSTOM_ID("OnReady", eventidOnReady, OnReady, VTS_NONE)
 	EVENT_CUSTOM_ID("OnCreate", eventidOnCreate, OnCreate, VTS_NONE)
 	EVENT_CUSTOM_ID("OnFocus", eventidOnFocus, OnFocus, VTS_BSTR)
-	EVENT_CUSTOM_ID("OnModified", eventidOnModified, OnModified, VTS_NONE)
+	EVENT_CUSTOM_ID("OnModified", eventidOnModified, OnModified, VTS_NONE)	
 	EVENT_STOCK_MOUSEDOWN()
+	EVENT_CUSTOM_ID("OnSelectionChanged", eventidOnSelectionChanged, OnSelectionChanged, VTS_BSTR VTS_BSTR)
 END_EVENT_MAP()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,10 +117,61 @@ CWebKitXCtrl::CWebKitXCtrl() :
 	m_ActiveXCreated(VARIANT_FALSE),
 	hook(NULL),
 	UID_COUNTER(0),
-	LoadingHTML(false)
+	LoadingHTML(false),
+	SIG_HTML_SELECTION_READY(NULL),
+	SIG_JAVASCRIPT_READY(NULL),
+	SIG_TIDY_HTML_READY(NULL)
+
 {
 	InitializeIIDs(&IID_DWebKitX, &IID_DWebKitXEvents);	
 	g_instnace = this;		
+
+	EditorCommands.push_back("backColor");
+	EditorCommands.push_back("bold");
+	EditorCommands.push_back("contentReadOnly");
+	EditorCommands.push_back("copy");
+	EditorCommands.push_back("createLink");
+	EditorCommands.push_back("cut");
+	EditorCommands.push_back("decreaseFontSize");
+	EditorCommands.push_back("delete");
+	EditorCommands.push_back("enableInlineTableEditing");
+	EditorCommands.push_back("enableObjectResizing");
+	EditorCommands.push_back("fontName");
+	EditorCommands.push_back("fontSize");
+	EditorCommands.push_back("foreColor");
+	EditorCommands.push_back("formatBlock");
+	EditorCommands.push_back("forwardDelete");
+	EditorCommands.push_back("heading");
+	EditorCommands.push_back("hiliteColor");
+	EditorCommands.push_back("increaseFontSize");
+	EditorCommands.push_back("indent");
+	EditorCommands.push_back("insertBrOnReturn");
+	EditorCommands.push_back("insertHorizontalRule");
+	EditorCommands.push_back("insertHTML");
+	EditorCommands.push_back("insertImage");
+	EditorCommands.push_back("insertOrderedList");
+	EditorCommands.push_back("insertUnorderedList");
+	EditorCommands.push_back("insertParagraph");
+	EditorCommands.push_back("insertText");
+	EditorCommands.push_back("italic");
+	EditorCommands.push_back("justifyCenter");
+	EditorCommands.push_back("justifyFull");
+	EditorCommands.push_back("justifyLeft");
+	EditorCommands.push_back("justifyRight");
+	EditorCommands.push_back("outdent");
+	EditorCommands.push_back("paste");
+	EditorCommands.push_back("redo");
+	EditorCommands.push_back("removeFormat");
+	EditorCommands.push_back("selectAll");
+	EditorCommands.push_back("strikeThrough");
+	EditorCommands.push_back("subscript");
+	EditorCommands.push_back("superscript");
+	EditorCommands.push_back("underline");
+	EditorCommands.push_back("undo");
+	EditorCommands.push_back("unlink");
+	EditorCommands.push_back("useCSS"); 
+	EditorCommands.push_back("styleWithCSS");
+
 	debugPrint("CWebKitXCtrl Created %d.\n", (int)this);
 }
 
@@ -125,6 +182,24 @@ CWebKitXCtrl::~CWebKitXCtrl()
 	{
 		CloseHandle(SIG_HTML_READY);
 		SIG_HTML_READY=NULL;
+	}
+
+	if(SIG_HTML_SELECTION_READY)
+	{
+		CloseHandle(SIG_HTML_SELECTION_READY);
+		SIG_HTML_SELECTION_READY=NULL;
+	}	
+
+	if(SIG_JAVASCRIPT_READY)
+	{
+		CloseHandle(SIG_JAVASCRIPT_READY);
+		SIG_JAVASCRIPT_READY=NULL;
+	}
+
+	if(SIG_TIDY_HTML_READY)
+	{
+		CloseHandle(SIG_TIDY_HTML_READY);
+		SIG_TIDY_HTML_READY=NULL;
 	}
 
 	if(AmbientUserMode() && m_Browser)
@@ -230,7 +305,7 @@ void CWebKitXCtrl::CreateCEFBrowser()
 	// FOR HTML5 EDITOR MODE YOU BETTER DISABLE JAVASCRIPT AND PLUGINS
 	browser_settings.java_disabled = true;
 	browser_settings.javascript_disabled = false;
-	browser_settings.javascript_access_clipboard_disallowed = true;
+	browser_settings.javascript_access_clipboard_disallowed = false;
 	browser_settings.javascript_close_windows_disallowed = true;
 	browser_settings.javascript_open_windows_disallowed = true;
 	browser_settings.page_cache_disabled = true;
@@ -243,6 +318,9 @@ void CWebKitXCtrl::CreateCEFBrowser()
 	{				
 		WebKitV8Extension::RegisterExtension(this);
 		SIG_HTML_READY = CreateEvent(NULL, true, false, NULL);		
+		SIG_HTML_SELECTION_READY = CreateEvent(NULL, true, false, NULL);
+		SIG_JAVASCRIPT_READY = CreateEvent(NULL, true, false, NULL);
+		SIG_TIDY_HTML_READY	= CreateEvent(NULL, true, false, NULL);
 	}
 }
 
@@ -622,7 +700,7 @@ void CWebKitXCtrl::LoadHTML(LPCTSTR HTML, LPCTSTR URL)
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();
 	m_Browser->StopLoad();
-	m_Browser->GetMainFrame()->LoadStringW(LPCTSTR_to_CefString(HTML,m_Editable==VARIANT_TRUE), CefString(URL));	
+	m_Browser->GetMainFrame()->LoadStringW(LPCTSTR_to_CefString(HTML,true), CefString(URL));	
 	SetModifiedFlag(FALSE);
 }
 
@@ -632,23 +710,21 @@ BSTR CWebKitXCtrl::GetHTML(void)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());	
 	if(AmbientUserMode() && m_Browser)
 	{
-		response = "";
+		document_html = "";
 
 		// Get HTML from CEF UI Thread
 		ResetEvent(SIG_HTML_READY);
 		CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteGetSource, m_Browser->GetMainFrame()));
 		WaitForSingleObject(SIG_HTML_READY, COMMAND_TIMEOUT_HIGH);		
 	}
-	return response;
+	return CComBSTR(document_html);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CWebKitXCtrl::ExecuteGetSource(CefRefPtr<CefFrame> frame)
 {	
-	bool CleanHTML = true; //g_instnace->m_Editable==VARIANT_TRUE;
-
 	#ifdef CEF_VERSION_1	
-	g_instnace->response = CefString_to_BSTR(frame->GetSource(), CleanHTML);	 
+	g_instnace->document_html = CefString_to_BSTR(frame->GetSource(), true);	 
 	#endif
 
 	#ifdef CEF_VERSION_3
@@ -681,6 +757,7 @@ void CWebKitXCtrl::AttachEditDOMEvents()
 {
 	REQUIRE_UI_THREAD();	
 	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("mousedown"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
+	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("selectionchange"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
 	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("DOMSubtreeModified"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);	
 }
 
@@ -699,12 +776,12 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 	if(ReEnter) return;
 	ReEnter=true;
 
-	CefRefPtr<CefDOMEvent> DOMEvnet = *e;
+	CefRefPtr<CefDOMEvent> DOMEvent = *e;
 	
 	// Get event type (eg. mousedown)
-	std::string type(DOMEvnet->GetType());
+	std::string type(DOMEvent->GetType());
 	
-	CefRefPtr<CefDOMNode> node = DOMEvnet->GetTarget();
+	CefRefPtr<CefDOMNode> node = DOMEvent->GetTarget();
 	//selectedNode = node;
 
 	// Get DOM path
@@ -733,15 +810,42 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 	// Trace
 	debugPrint("DOMEvent: %s, target: %s\n", type.c_str(), target.c_str());
 
-	// Fire OnFocus ActiveX Event
+	//==============================================================================================================================================
 	if(type=="DOMSubtreeModified") 
 	{		
-		OnModified();
+		FireOnModified();
 	}
-	else
-	{		
-		focusNodes = target;
+	//==============================================================================================================================================
+	else if(type=="selectionchange")
+	{
+		document_html = CefString_to_BSTR(DOMEvent->GetTarget()->GetDocument()->GetDocument()->GetAsMarkup(), false);
 		
+		selection = "";
+
+		std::string code =  "(function(){var sel=window.getSelection().focusNode; return (sel.nodeType==3?sel.parentNode:sel).outerHTML;})()";
+
+		CefString _code(code.c_str());
+		CefRefPtr<CefV8Value> result;
+		CefRefPtr<CefV8Exception> exception;
+
+		v8context->Enter();
+		{
+			v8context->Eval(_code, result, exception);
+		}				
+		v8context->Exit();
+
+		if(result && result->IsString())
+		{
+			CefString html = result->GetStringValue();
+			selection = CefString_to_BSTR(html, false);		
+		}				
+
+		FireOnSelectionChanged();
+	}
+	//==============================================================================================================================================
+	else if(type=="mousedown")
+	{		
+		focusNodes = target;		
 		FireOnMouseDown();		
 		if(!LoadingHTML)
 			FireOnFocus();		
@@ -790,41 +894,11 @@ void CWebKitXCtrl::__set_attribute(std::string selector, std::string attrName, s
 			if(body.get())
 			{
 				body->SetElementAttribute(attrName, attrValue);				
-			}				
+			}
 		}
 		IMPLEMENT_REFCOUNTING(Visitor);
 	};	
 
-	m_Browser->GetMainFrame()->VisitDOM(new Visitor(selector, attrName, attrValue));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::__set_style(std::string selector, std::string attrName, std::string attrValue)
-{
-	REQUIRE_UI_THREAD();	
-	
-	class Visitor : public CefDOMVisitor
-	{
-	public:
-		std::string selector;
-		std::string attrName;
-		std::string attrValue;		
-		Visitor(std::string selector, std::string attrName, std::string attrValue) 
-		{
-			this->selector = selector;
-			this->attrName = attrName;
-			this->attrValue = attrValue;
-		}
-		virtual void Visit(CefRefPtr<CefDOMDocument> document) 
-		{			
-			CefRefPtr<CefDOMNode> body = document->GetBody();
-			if(body.get())
-			{
-				body->SetElementAttribute(attrName, attrValue);				
-			}							
-		}
-		IMPLEMENT_REFCOUNTING(Visitor);
-	};	
 	m_Browser->GetMainFrame()->VisitDOM(new Visitor(selector, attrName, attrValue));
 }
 
@@ -849,7 +923,7 @@ void CWebKitXCtrl::SetStyle(LPCTSTR Selector, LPCTSTR StyleName, LPCTSTR StyleVa
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	USES_CONVERSION;
 	REQUIRE_UI_THREAD();	
-	__set_style(std::string(T2A(Selector)), std::string(T2A(StyleName)), std::string(T2A(StyleValue)));
+	//__set_style(std::string(T2A(Selector)), std::string(T2A(StyleName)), std::string(T2A(StyleValue)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -861,38 +935,40 @@ void CWebKitXCtrl::OnEditableChanged(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::SelectElement(LPCTSTR Selector, VARIANT_BOOL Sel)
+void CWebKitXCtrl::SelectElement(LPCTSTR Selector, VARIANT_BOOL MoveCaret, VARIANT_BOOL SelectContents)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	USES_CONVERSION;
-	__selectSingleNode(std::string(T2A(Selector)), Sel!=0);
+	__selectSingleNode(std::string(T2A(Selector)), (bool)(MoveCaret!=0), (bool)(SelectContents!=0));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-CefRefPtr<CefDOMNode> CWebKitXCtrl::__selectSingleNode(std::string selector, bool sel)
+CefRefPtr<CefDOMNode> CWebKitXCtrl::__selectSingleNode(std::string selector, bool MoveCaret, bool SelectContents)
 {
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());	
-	REQUIRE_UI_THREAD();		
-	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteSelectNode, selector, sel));	
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());		
+	CefPostTask(TID_UI, NewCefRunnableFunction(&ExecuteSelectNode, selector, MoveCaret, SelectContents));	
 	return NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool sel)
+void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool MoveCaret, bool SelectContents)
 {
-	REQUIRE_UI_THREAD();		
-	CefRefPtr<CefDOMNode> node;
+	REQUIRE_UI_THREAD();
+
 	if(g_instnace->v8context)
 	{
 		g_instnace->v8context->Enter();
 		{
-			std::string code = "(function(select){\n"
+			std::string code = "(function(MoveCaret, SelectContents){\n" 
 				"var target = document.querySelectorAll('" + selector + "')[0];\n"
 				"if(!target) return;"
 				"target.focus();\n"		
-				"var range = document.createRange();\n"
-				"range.selectNodeContents(target);\n"
-				"if(!select) {\n"
+				"var range = document.createRange();\n"				
+				"if(SelectContents)\n"
+				"  range.selectNodeContents(target);\n"
+				"else\n"
+				"  range.selectNode(target);\n"
+				"if(MoveCaret) {\n"
 				"  var startNode = target.firstChild;\n"
 				"  var endNode = target.firstChild;\n"
 				"  range.setStart(startNode, 0);\n"
@@ -901,17 +977,167 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool sel)
 				"var sel = window.getSelection();\n"
 				"sel.removeAllRanges();\n"
 				"sel.addRange(range);\n"				
-				"})(" + (sel?"true":"false") + ");";
-
-			//"var mousedownEvent = document.createEvent(\"MouseEvent\");\n"
-			//"mousedownEvent.initMouseEvent(\"mousedown\",false,false,window,0,0,0,0,0,0,0,0,0,1,target);\n"				
-			//"target.dispatchEvent(mousedownEvent);\n"
-
+				"var sel=window.getSelection().focusNode;\n"
+				"return (sel.nodeType==3?sel.parentNode:sel).outerHTML;\n"
+				"})(" + (MoveCaret?"true":"false") + "," + (SelectContents?"true":"false") + ");";
+			
 			CefRefPtr<CefV8Value> retval;
 			CefRefPtr<CefV8Exception> exception;
 			g_instnace->v8context->Eval(code.c_str(), retval, exception);			
+
+			if(retval && retval->IsString())
+			{
+				CefString html = retval->GetStringValue();
+				g_instnace->document_html = CefString_to_BSTR(html, true);
+			}				
+
 		}
 		g_instnace->v8context->Exit();
 	}	
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+BSTR CWebKitXCtrl::SelectedHTML(VARIANT_BOOL FullHTML)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	REQUIRE_UI_THREAD();	
+
+	class Visitor : public CefDOMVisitor
+	{
+	public:
+		VARIANT_BOOL FullHTML;
+		Visitor(VARIANT_BOOL FullHTML)
+		{
+			this->FullHTML = FullHTML;
+		}
+		virtual void Visit(CefRefPtr<CefDOMDocument> document) 
+		{
+			
+			if(FullHTML==VARIANT_TRUE)
+			{				
+				g_instnace->selection = CefString_to_BSTR(document->GetSelectionAsMarkup(), true);
+			}
+			else
+			{
+				std::string code = "(function(){var sel=window.getSelection().focusNode; return (sel.nodeType==3?sel.parentNode:sel).outerHTML;})()";
+
+				CefString _code(code.c_str());
+				CefRefPtr<CefV8Value> result;
+				CefRefPtr<CefV8Exception> exception;
+				
+				g_instnace->v8context->Enter();
+				{
+					g_instnace->v8context->Eval(_code, result, exception);
+				}				
+				g_instnace->v8context->Exit();
+				
+				if(result && result->IsString())
+				{
+					CefString html = result->GetStringValue();
+					g_instnace->selection = CefString_to_BSTR(html, true);
+				}				
+			}
+			
+			SetEvent(g_instnace->SIG_HTML_SELECTION_READY);
+		}
+		IMPLEMENT_REFCOUNTING(Visitor);
+	};
+	
+	selection = "";
+	ResetEvent(SIG_HTML_SELECTION_READY);
+	m_Browser->GetMainFrame()->VisitDOM(new Visitor(FullHTML));
+	WaitForSingleObject(SIG_HTML_SELECTION_READY, COMMAND_TIMEOUT_LOW);
+	return CComBSTR(selection);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+BSTR CWebKitXCtrl::ExecJavaScript(LPCTSTR Code)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());		
+	jsresult="";
+	ResetEvent(SIG_JAVASCRIPT_READY);
+	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteCode, Code));
+	WaitForSingleObject(SIG_JAVASCRIPT_READY, COMMAND_TIMEOUT_LOW);		
+	return CComBSTR(jsresult);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CWebKitXCtrl::ExecuteCode(LPCTSTR JavaScript)
+{
+	REQUIRE_UI_THREAD();	
+	g_instnace->jsresult="";
+	CefString _code(LPCTSTR_to_CefString(JavaScript, false));
+	CefRefPtr<CefV8Value> result;
+	CefRefPtr<CefV8Exception> exception;
+	g_instnace->v8context->Enter();
+	{
+		g_instnace->v8context->Eval(_code, result, exception);
+	}				
+	g_instnace->v8context->Exit();
+	if(result && result->IsString())
+	{
+		g_instnace->jsresult = CefString_to_BSTR(result->GetStringValue(), false);		
+	}	
+	SetEvent(g_instnace->SIG_JAVASCRIPT_READY);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+BSTR CWebKitXCtrl::ExecCommand(LONG id, VARIANT& Params)
+{	
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	USES_CONVERSION;
+
+	CComBSTR code("document.execCommand(\"");
+	code.Append(EditorCommands[id].c_str());
+	code.Append("\", false, \"");
+	code.Append(Params.bstrVal);
+	code.Append("\")");	
+
+	debugPrint("%s\n", _com_util::ConvertBSTRToString(code));
+	
+	ExecJavaScript(code);
+	return CComBSTR(jsresult);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+BSTR CWebKitXCtrl::TidyHTML(LPCTSTR HTML)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());		
+	jsresult="";
+	ResetEvent(SIG_TIDY_HTML_READY);
+	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteTidy, HTML));
+	WaitForSingleObject(SIG_TIDY_HTML_READY, INFINITE);		
+	return CComBSTR(jsresult);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CWebKitXCtrl::ExecuteTidy(LPCTSTR HTML)
+{
+	REQUIRE_UI_THREAD();
+	g_instnace->jsresult="";	
+	g_instnace->v8context->Enter();
+	{
+		CefRefPtr<CefV8Value> fnPtr;
+		CefRefPtr<CefV8Exception> exception;
+		CefString code = "__tidy_html = function(html){function style_html(e,t){function u(){this.pos=0;this.token=\"\";this.current_mode=\"CONTENT\";this.tags={parent:\"parent1\",parentcount:1,parent1:\"\"};this.tag_type=\"\";this.token_text=this.last_token=this.last_text=this.token_type=\"\";this.Utils={whitespace:\"\\n\\r	 \".split(\"\"),single_token:\"br,input,link,meta,!doctype,basefont,base,area,hr,wbr,param,img,isindex,?xml,embed\".split(\",\"),extra_liners:\"head,body,/html\".split(\",\"),in_array:function(e,t){for(var n=0;n<t.length;n++){if(e===t[n]){return true}}return false}};this.get_content=function(){var e=\"\";var t=[];var n=false;while(this.input.charAt(this.pos)!==\"<\"){if(this.pos>=this.input.length){return t.length?t.join(\"\"):[\"\",\"TK_EOF\"]}e=this.input.charAt(this.pos);this.pos++;this.line_char_count++;if(this.Utils.in_array(e,this.Utils.whitespace)){if(t.length){n=true}this.line_char_count--;continue}else if(n){if(this.line_char_count>=this.max_char){t.push(\"\\n\");for(var r=0;r<this.indent_level;r++){t.push(this.indent_string)}this.line_char_count=0}else{t.push(\" \");this.line_char_count++}n=false}t.push(e)}return t.length?t.join(\"\"):\"\"};this.get_contents_to=function(e){if(this.pos==this.input.length){return[\"\",\"TK_EOF\"]}var t=\"\";var n=\"\";var r=new RegExp(\"</\"+e+\"\\\\s*>\",\"igm\");r.lastIndex=this.pos;var i=r.exec(this.input);var s=i?i.index:this.input.length;if(this.pos<s){n=this.input.substring(this.pos,s);this.pos=s}return n};this.record_tag=function(e){if(this.tags[e+\"count\"]){this.tags[e+\"count\"]++;this.tags[e+this.tags[e+\"count\"]]=this.indent_level}else{this.tags[e+\"count\"]=1;this.tags[e+this.tags[e+\"count\"]]=this.indent_level}this.tags[e+this.tags[e+\"count\"]+\"parent\"]=this.tags.parent;this.tags.parent=e+this.tags[e+\"count\"]};this.retrieve_tag=function(e){if(this.tags[e+\"count\"]){var t=this.tags.parent;while(t){if(e+this.tags[e+\"count\"]===t){break}t=this.tags[t+\"parent\"]}if(t){this.indent_level=this.tags[e+this.tags[e+\"count\"]];this.tags.parent=this.tags[t+\"parent\"]}delete this.tags[e+this.tags[e+\"count\"]+\"parent\"];delete this.tags[e+this.tags[e+\"count\"]];if(this.tags[e+\"count\"]==1){delete this.tags[e+\"count\"]}else{this.tags[e+\"count\"]--}}};this.get_tag=function(){var e=\"\";var t=[];var n=false;do{if(this.pos>=this.input.length){return t.length?t.join(\"\"):[\"\",\"TK_EOF\"]}e=this.input.charAt(this.pos);this.pos++;this.line_char_count++;if(this.Utils.in_array(e,this.Utils.whitespace)){n=true;this.line_char_count--;continue}if(e===\"'\"||e==='\"'){if(!t[1]||t[1]!==\"!\"){e+=this.get_unformatted(e);n=true}}if(e===\"=\"){n=false}if(t.length&&t[t.length-1]!==\"=\"&&e!==\">\"&&n){if(this.line_char_count>=this.max_char){this.print_newline(false,t);this.line_char_count=0}else{t.push(\" \");this.line_char_count++}n=false}t.push(e)}while(e!==\">\");var r=t.join(\"\");var i;if(r.indexOf(\" \")!=-1){i=r.indexOf(\" \")}else{i=r.indexOf(\">\")}var s=r.substring(1,i).toLowerCase();if(r.charAt(r.length-2)===\"/\"||this.Utils.in_array(s,this.Utils.single_token)){this.tag_type=\"SINGLE\"}else if(s===\"script\"){this.record_tag(s);this.tag_type=\"SCRIPT\"}else if(s===\"style\"){this.record_tag(s);this.tag_type=\"STYLE\"}else if(this.Utils.in_array(s,unformatted)){var o=this.get_unformatted(\"</\"+s+\">\",r);t.push(o);this.tag_type=\"SINGLE\"}else if(s.charAt(0)===\"!\"){if(s.indexOf(\"[if\")!=-1){if(r.indexOf(\"!IE\")!=-1){var o=this.get_unformatted(\"-->\",r);t.push(o)}this.tag_type=\"START\"}else if(s.indexOf(\"[endif\")!=-1){this.tag_type=\"END\";this.unindent()}else if(s.indexOf(\"[cdata[\")!=-1){var o=this.get_unformatted(\"]]>\",r);t.push(o);this.tag_type=\"SINGLE\"}else{var o=this.get_unformatted(\"-->\",r);t.push(o);this.tag_type=\"SINGLE\"}}else{if(s.charAt(0)===\"/\"){this.retrieve_tag(s.substring(1));this.tag_type=\"END\"}else{this.record_tag(s);this.tag_type=\"START\"}if(this.Utils.in_array(s,this.Utils.extra_liners)){this.print_newline(true,this.output)}}return t.join(\"\")};this.get_unformatted=function(e,t){if(t&&t.indexOf(e)!=-1){return\"\"}var n=\"\";var r=\"\";var i=true;do{if(this.pos>=this.input.length){return r}n=this.input.charAt(this.pos);this.pos++;if(this.Utils.in_array(n,this.Utils.whitespace)){if(!i){this.line_char_count--;continue}if(n===\"\\n\"||n===\"\\r\"){r+=\"\\n\";this.line_char_count=0;continue}}r+=n;this.line_char_count++;i=true}while(r.indexOf(e)==-1);return r};this.get_token=function(){var e;if(this.last_token===\"TK_TAG_SCRIPT\"||this.last_token===\"TK_TAG_STYLE\"){var t=this.last_token.substr(7);e=this.get_contents_to(t);if(typeof e!==\"string\"){return e}return[e,\"TK_\"+t]}if(this.current_mode===\"CONTENT\"){e=this.get_content();if(typeof e!==\"string\"){return e}else{return[e,\"TK_CONTENT\"]}}if(this.current_mode===\"TAG\"){e=this.get_tag();if(typeof e!==\"string\"){return e}else{var n=\"TK_TAG_\"+this.tag_type;return[e,n]}}};this.get_full_indent=function(e){e=this.indent_level+e||0;if(e<1)return\"\";return Array(e+1).join(this.indent_string)};this.printer=function(e,t,n,r,i){this.input=e||\"\";this.output=[];this.indent_character=t;this.indent_string=\"\";this.indent_size=n;this.brace_style=i;this.indent_level=0;this.max_char=r;this.line_char_count=0;for(var s=0;s<this.indent_size;s++){this.indent_string+=this.indent_character}this.print_newline=function(e,t){this.line_char_count=0;if(!t||!t.length){return}if(!e){while(this.Utils.in_array(t[t.length-1],this.Utils.whitespace)){t.pop()}}t.push(\"\\n\");for(var n=0;n<this.indent_level;n++){t.push(this.indent_string)}};this.print_token=function(e){this.output.push(e)};this.indent=function(){this.indent_level++};this.unindent=function(){if(this.indent_level>0){this.indent_level--}}};return this}var n,r,i,s,o;t=t||{};r=t.indent_size||4;i=t.indent_char||\" \";o=t.brace_style||\"collapse\";s=t.max_char==0?Infinity:t.max_char||70;unformatted=t.unformatted||[\"a\"];n=new u;n.printer(e,i,r,s,o);while(true){var a=n.get_token();n.token_text=a[0];n.token_type=a[1];if(n.token_type===\"TK_EOF\"){break}switch(n.token_type){case\"TK_TAG_START\":n.print_newline(false,n.output);n.print_token(n.token_text);n.indent();n.current_mode=\"CONTENT\";break;case\"TK_TAG_STYLE\":case\"TK_TAG_SCRIPT\":n.print_newline(false,n.output);n.print_token(n.token_text);n.current_mode=\"CONTENT\";break;case\"TK_TAG_END\":if(n.last_token===\"TK_CONTENT\"&&n.last_text===\"\"){var f=n.token_text.match(/\\w+/)[0];var l=n.output[n.output.length-1].match(/<\\s*(\\w+)/);if(l===null||l[1]!==f)n.print_newline(true,n.output)}n.print_token(n.token_text);n.current_mode=\"CONTENT\";break;case\"TK_TAG_SINGLE\":n.print_newline(false,n.output);n.print_token(n.token_text);n.current_mode=\"CONTENT\";break;case\"TK_CONTENT\":if(n.token_text!==\"\"){n.print_token(n.token_text)}n.current_mode=\"TAG\";break;case\"TK_STYLE\":case\"TK_SCRIPT\":if(n.token_text!==\"\"){n.output.push(\"\\n\");var c=n.token_text;if(n.token_type==\"TK_SCRIPT\"){var h=typeof js_beautify==\"function\"&&js_beautify}else if(n.token_type==\"TK_STYLE\"){var h=typeof css_beautify==\"function\"&&css_beautify}if(t.indent_scripts==\"keep\"){var p=0}else if(t.indent_scripts==\"separate\"){var p=-n.indent_level}else{var p=1}var d=n.get_full_indent(p);if(h){c=h(c.replace(/^\\s*/,d),t)}else{var v=c.match(/^\\s*/)[0];var m=v.match(/[^\\n\\r]*$/)[0].split(n.indent_string).length-1;var g=n.get_full_indent(p-m);c=c.replace(/^\\s*/,d).replace(/\\r\\n|\\r|\\n/g,\"\\n\"+g).replace(/\\s*$/,\"\")}if(c){n.print_token(c);n.print_newline(true,n.output)}}n.current_mode=\"TAG\";break}n.last_token=n.token_type;n.last_text=n.token_text}return n.output.join(\"\")}function style_html(e,t){function u(){this.pos=0;this.token=\"\";this.current_mode=\"CONTENT\";this.tags={parent:\"parent1\",parentcount:1,parent1:\"\"};this.tag_type=\"\";this.token_text=this.last_token=this.last_text=this.token_type=\"\";this.Utils={whitespace:\"\\n\\r	 \".split(\"\"),single_token:\"br,input,link,meta,!doctype,basefont,base,area,hr,wbr,param,img,isindex,?xml,embed\".split(\",\"),extra_liners:\"head,body,/html\".split(\",\"),in_array:function(e,t){for(var n=0;n<t.length;n++){if(e===t[n]){return true}}return false}};this.get_content=function(){var e=\"\";var t=[];var n=false;while(this.input.charAt(this.pos)!==\"<\"){if(this.pos>=this.input.length){return t.length?t.join(\"\"):[\"\",\"TK_EOF\"]}e=this.input.charAt(this.pos);this.pos++;this.line_char_count++;if(this.Utils.in_array(e,this.Utils.whitespace)){if(t.length){n=true}this.line_char_count--;continue}else if(n){if(this.line_char_count>=this.max_char){t.push(\"\\n\");for(var r=0;r<this.indent_level;r++){t.push(this.indent_string)}this.line_char_count=0}else{t.push(\" \");this.line_char_count++}n=false}t.push(e)}return t.length?t.join(\"\"):\"\"};this.get_contents_to=function(e){if(this.pos==this.input.length){return[\"\",\"TK_EOF\"]}var t=\"\";var n=\"\";var r=new RegExp(\"</\"+e+\"\\\\s*>\",\"igm\");r.lastIndex=this.pos;var i=r.exec(this.input);var s=i?i.index:this.input.length;if(this.pos<s){n=this.input.substring(this.pos,s);this.pos=s}return n};this.record_tag=function(e){if(this.tags[e+\"count\"]){this.tags[e+\"count\"]++;this.tags[e+this.tags[e+\"count\"]]=this.indent_level}else{this.tags[e+\"count\"]=1;this.tags[e+this.tags[e+\"count\"]]=this.indent_level}this.tags[e+this.tags[e+\"count\"]+\"parent\"]=this.tags.parent;this.tags.parent=e+this.tags[e+\"count\"]};this.retrieve_tag=function(e){if(this.tags[e+\"count\"]){var t=this.tags.parent;while(t){if(e+this.tags[e+\"count\"]===t){break}t=this.tags[t+\"parent\"]}if(t){this.indent_level=this.tags[e+this.tags[e+\"count\"]];this.tags.parent=this.tags[t+\"parent\"]}delete this.tags[e+this.tags[e+\"count\"]+\"parent\"];delete this.tags[e+this.tags[e+\"count\"]];if(this.tags[e+\"count\"]==1){delete this.tags[e+\"count\"]}else{this.tags[e+\"count\"]--}}};this.get_tag=function(){var e=\"\";var t=[];var n=false;do{if(this.pos>=this.input.length){return t.length?t.join(\"\"):[\"\",\"TK_EOF\"]}e=this.input.charAt(this.pos);this.pos++;this.line_char_count++;if(this.Utils.in_array(e,this.Utils.whitespace)){n=true;this.line_char_count--;continue}if(e===\"'\"||e==='\"'){if(!t[1]||t[1]!==\"!\"){e+=this.get_unformatted(e);n=true}}if(e===\"=\"){n=false}if(t.length&&t[t.length-1]!==\"=\"&&e!==\">\"&&n){if(this.line_char_count>=this.max_char){this.print_newline(false,t);this.line_char_count=0}else{t.push(\" \");this.line_char_count++}n=false}t.push(e)}while(e!==\">\");var r=t.join(\"\");var i;if(r.indexOf(\" \")!=-1){i=r.indexOf(\" \")}else{i=r.indexOf(\">\")}var s=r.substring(1,i).toLowerCase();if(r.charAt(r.length-2)===\"/\"||this.Utils.in_array(s,this.Utils.single_token)){this.tag_type=\"SINGLE\"}else if(s===\"script\"){this.record_tag(s);this.tag_type=\"SCRIPT\"}else if(s===\"style\"){this.record_tag(s);this.tag_type=\"STYLE\"}else if(this.Utils.in_array(s,unformatted)){var o=this.get_unformatted(\"</\"+s+\">\",r);t.push(o);this.tag_type=\"SINGLE\"}else if(s.charAt(0)===\"!\"){if(s.indexOf(\"[if\")!=-1){if(r.indexOf(\"!IE\")!=-1){var o=this.get_unformatted(\"-->\",r);t.push(o)}this.tag_type=\"START\"}else if(s.indexOf(\"[endif\")!=-1){this.tag_type=\"END\";this.unindent()}else if(s.indexOf(\"[cdata[\")!=-1){var o=this.get_unformatted(\"]]>\",r);t.push(o);this.tag_type=\"SINGLE\"}else{var o=this.get_unformatted(\"-->\",r);t.push(o);this.tag_type=\"SINGLE\"}}else{if(s.charAt(0)===\"/\"){this.retrieve_tag(s.substring(1));this.tag_type=\"END\"}else{this.record_tag(s);this.tag_type=\"START\"}if(this.Utils.in_array(s,this.Utils.extra_liners)){this.print_newline(true,this.output)}}return t.join(\"\")};this.get_unformatted=function(e,t){if(t&&t.indexOf(e)!=-1){return\"\"}var n=\"\";var r=\"\";var i=true;do{if(this.pos>=this.input.length){return r}n=this.input.charAt(this.pos);this.pos++;if(this.Utils.in_array(n,this.Utils.whitespace)){if(!i){this.line_char_count--;continue}if(n===\"\\n\"||n===\"\\r\"){r+=\"\\n\";this.line_char_count=0;continue}}r+=n;this.line_char_count++;i=true}while(r.indexOf(e)==-1);return r};this.get_token=function(){var e;if(this.last_token===\"TK_TAG_SCRIPT\"||this.last_token===\"TK_TAG_STYLE\"){var t=this.last_token.substr(7);e=this.get_contents_to(t);if(typeof e!==\"string\"){return e}return[e,\"TK_\"+t]}if(this.current_mode===\"CONTENT\"){e=this.get_content();if(typeof e!==\"string\"){return e}else{return[e,\"TK_CONTENT\"]}}if(this.current_mode===\"TAG\"){e=this.get_tag();if(typeof e!==\"string\"){return e}else{var n=\"TK_TAG_\"+this.tag_type;return[e,n]}}};this.get_full_indent=function(e){e=this.indent_level+e||0;if(e<1)return\"\";return Array(e+1).join(this.indent_string)};this.printer=function(e,t,n,r,i){this.input=e||\"\";this.output=[];this.indent_character=t;this.indent_string=\"\";this.indent_size=n;this.brace_style=i;this.indent_level=0;this.max_char=r;this.line_char_count=0;for(var s=0;s<this.indent_size;s++){this.indent_string+=this.indent_character}this.print_newline=function(e,t){this.line_char_count=0;if(!t||!t.length){return}if(!e){while(this.Utils.in_array(t[t.length-1],this.Utils.whitespace)){t.pop()}}t.push(\"\\n\");for(var n=0;n<this.indent_level;n++){t.push(this.indent_string)}};this.print_token=function(e){this.output.push(e)};this.indent=function(){this.indent_level++};this.unindent=function(){if(this.indent_level>0){this.indent_level--}}};return this}var n,r,i,s,o;t=t||{};r=t.indent_size||4;i=t.indent_char||\" \";o=t.brace_style||\"collapse\";s=t.max_char==0?Infinity:t.max_char||70;unformatted=t.unformatted||[\"a\"];n=new u;n.printer(e,i,r,s,o);while(true){var a=n.get_token();n.token_text=a[0];n.token_type=a[1];if(n.token_type===\"TK_EOF\"){break}switch(n.token_type){case\"TK_TAG_START\":n.print_newline(false,n.output);n.print_token(n.token_text);n.indent();n.current_mode=\"CONTENT\";break;case\"TK_TAG_STYLE\":case\"TK_TAG_SCRIPT\":n.print_newline(false,n.output);n.print_token(n.token_text);n.current_mode=\"CONTENT\";break;case\"TK_TAG_END\":if(n.last_token===\"TK_CONTENT\"&&n.last_text===\"\"){var f=n.token_text.match(/\\w+/)[0];var l=n.output[n.output.length-1].match(/<\\s*(\\w+)/);if(l===null||l[1]!==f)n.print_newline(true,n.output)}n.print_token(n.token_text);n.current_mode=\"CONTENT\";break;case\"TK_TAG_SINGLE\":n.print_newline(false,n.output);n.print_token(n.token_text);n.current_mode=\"CONTENT\";break;case\"TK_CONTENT\":if(n.token_text!==\"\"){n.print_token(n.token_text)}n.current_mode=\"TAG\";break;case\"TK_STYLE\":case\"TK_SCRIPT\":if(n.token_text!==\"\"){n.output.push(\"\\n\");var c=n.token_text;if(n.token_type==\"TK_SCRIPT\"){var h=typeof js_beautify==\"function\"&&js_beautify}else if(n.token_type==\"TK_STYLE\"){var h=typeof css_beautify==\"function\"&&css_beautify}if(t.indent_scripts==\"keep\"){var p=0}else if(t.indent_scripts==\"separate\"){var p=-n.indent_level}else{var p=1}var d=n.get_full_indent(p);if(h){c=h(c.replace(/^\\s*/,d),t)}else{var v=c.match(/^\\s*/)[0];var m=v.match(/[^\\n\\r]*$/)[0].split(n.indent_string).length-1;var g=n.get_full_indent(p-m);c=c.replace(/^\\s*/,d).replace(/\\r\\n|\\r|\\n/g,\"\\n\"+g).replace(/\\s*$/,\"\")}if(c){n.print_token(c);n.print_newline(true,n.output)}}n.current_mode=\"TAG\";break}n.last_token=n.token_type;n.last_text=n.token_text}return n.output.join(\"\")}; return style_html(html);}";	
+		g_instnace->v8context->Eval(code, fnPtr, exception);
+		if(fnPtr && fnPtr->IsFunction())
+		{
+			CefV8ValueList argList;
+			CefRefPtr<CefV8Value> arg0 = CefV8Value::CreateString(LPCTSTR_to_CefString(HTML, false));
+			argList.push_back(arg0);
+			CefRefPtr<CefV8Value> result = fnPtr->ExecuteFunction(g_instnace->v8context->GetGlobal(), argList);
+			if(result && result->IsString())
+			{
+				g_instnace->jsresult = CefString_to_BSTR(result->GetStringValue(), true);		
+			}	
+		}
+	}				
+	g_instnace->v8context->Exit();
+	SetEvent(g_instnace->SIG_TIDY_HTML_READY);
+}
+
+
+//"var mousedownEvent = document.createEvent(\"MouseEvent\");\n"
+//"mousedownEvent.initMouseEvent(\"mousedown\",false,false,window,0,0,0,0,0,0,0,0,0,1,target);\n"				
+//"target.dispatchEvent(mousedownEvent);\n"

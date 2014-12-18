@@ -71,8 +71,7 @@ library WebKitXLib
 	{
 		properties:
 			[id(2)] BSTR HTML;
-			[id(0)] BSTR _HTML;						
-			[id(12) ] VARIANT_BOOL Editable;
+			[id(0)] BSTR _HTML;			
 			[id(DISPID_HWND)] OLE_HANDLE hWnd;			
 
 	methods:			
@@ -93,6 +92,7 @@ library WebKitXLib
 			[id(18)] BSTR ExecJavaScript([in] BSTR Code);
 			[id(19)] BSTR ExecCommand([in] EDIT_COMMAND id, [in, optional] VARIANT Params);
 			[id(20)] BSTR TidyHTML(BSTR HTML);
+			[id(21)] VARIANT_BOOL Editable(void);
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

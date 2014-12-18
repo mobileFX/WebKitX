@@ -75,12 +75,12 @@ BEGIN_DISPATCH_MAP(CWebKitXCtrl, COleControl)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "hBrowserHWND", dispidhBrowserHWND, hBrowserHWND, VT_HANDLE, VTS_NONE)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "LoadHTML", dispidLoadHTML, LoadHTML, VT_EMPTY, VTS_BSTR VTS_BSTR)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Created", dispidCreated, Created, VT_BOOL, VTS_NONE)
-	DISP_FUNCTION_ID(CWebKitXCtrl, "SelectedHTML", dispidSelectedHTML, SelectedHTML, VT_BSTR, VTS_BOOL)	
-	DISP_PROPERTY_NOTIFY_ID(CWebKitXCtrl, "Editable", dispidEditable, m_Editable, OnEditableChanged, VT_BOOL)	
+	DISP_FUNCTION_ID(CWebKitXCtrl, "SelectedHTML", dispidSelectedHTML, SelectedHTML, VT_BSTR, VTS_BOOL)		
 	DISP_PROPERTY_EX_ID(CWebKitXCtrl, "HTML", dispidHTML, GetHTML, SetHTML, VT_BSTR)	
 	DISP_FUNCTION_ID(CWebKitXCtrl, "ExecJavaScript", dispidExecJavaScript, ExecJavaScript, VT_BSTR, VTS_BSTR)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "ExecCommand", dispidExecCommand, ExecCommand, VT_BSTR, VTS_I4 VTS_VARIANT)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "TidyHTML", dispidTidyHTML, TidyHTML, VT_BSTR, VTS_BSTR)
+	DISP_FUNCTION_ID(CWebKitXCtrl, "Editable", dispidEditable, Editable, VT_BOOL, VTS_NONE)
 END_DISPATCH_MAP()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -490,6 +490,12 @@ LRESULT CWebKitXCtrl::CancelMessage(WPARAM wParam, LPARAM lParam)
 //	                                                           
 // ==================================================================================================================================
 
+VARIANT_BOOL CWebKitXCtrl::Editable(void)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	return m_Editable;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 OLE_HANDLE CWebKitXCtrl::hBrowserHWND(void)
 {
@@ -508,7 +514,7 @@ VARIANT_BOOL CWebKitXCtrl::Created(void)
 VARIANT_BOOL CWebKitXCtrl::Modified(void)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());	
-	return m_bModified ? VARIANT_TRUE : VARIANT_FALSE;
+	return IsModified()==FALSE ? VARIANT_FALSE : VARIANT_TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -698,6 +704,7 @@ void CWebKitXCtrl::Reload(void)
 	REQUIRE_UI_THREAD();	
 	if(m_Browser)
 		m_Browser->ReloadIgnoreCache();
+	SetModifiedFlag(FALSE);	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -735,7 +742,7 @@ BSTR CWebKitXCtrl::GetHTML(void)
 		CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteGetSource, m_Browser->GetMainFrame()));
 		WaitForSignal(SIG_HTML_READY, COMMAND_TIMEOUT_HIGH);		
 	}
-	return CComBSTR(document_html);
+	return CComBSTR(document_html).Detach();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -836,8 +843,7 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 	//==============================================================================================================================================
 	else if(type=="selectionchange")
 	{
-		ExecuteTidy(CefString_to_BSTR(DOMEvent->GetTarget()->GetDocument()->GetDocument()->GetAsMarkup(), false), false);
-		document_html = jsresult;
+		document_html = CefString_to_BSTR(DOMEvent->GetTarget()->GetDocument()->GetDocument()->GetAsMarkup(), false);
 		
 		selection = "";
 
@@ -862,7 +868,7 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 		FireOnSelectionChanged();
 	}
 	//==============================================================================================================================================
-	else if(type=="mousedown")
+	else if(type=="mousedown")		
 	{		
 		focusNodes = target;		
 		FireOnMouseDown();		
@@ -943,14 +949,6 @@ void CWebKitXCtrl::SetStyle(LPCTSTR Selector, LPCTSTR StyleName, LPCTSTR StyleVa
 	USES_CONVERSION;
 	REQUIRE_UI_THREAD();	
 	//__set_style(std::string(T2A(Selector)), std::string(T2A(StyleName)), std::string(T2A(StyleValue)));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::OnEditableChanged(void)
-{
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	REQUIRE_UI_THREAD();	
-	SetModifiedFlag();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1066,7 +1064,7 @@ BSTR CWebKitXCtrl::SelectedHTML(VARIANT_BOOL FullHTML)
 	ResetEvent(SIG_HTML_SELECTION_READY);
 	m_Browser->GetMainFrame()->VisitDOM(new Visitor(FullHTML));
 	WaitForSignal(SIG_HTML_SELECTION_READY, COMMAND_TIMEOUT_LOW);
-	return CComBSTR(selection);
+	return CComBSTR(selection).Detach();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1077,7 +1075,7 @@ BSTR CWebKitXCtrl::ExecJavaScript(LPCTSTR Code)
 	ResetEvent(SIG_JAVASCRIPT_READY);
 	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteCode, Code));
 	WaitForSignal(SIG_JAVASCRIPT_READY, COMMAND_TIMEOUT_LOW);		
-	return CComBSTR(jsresult);
+	return CComBSTR(jsresult).Detach();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1115,7 +1113,7 @@ BSTR CWebKitXCtrl::ExecCommand(LONG id, VARIANT& Params)
 	debugPrint("%s\n", _com_util::ConvertBSTRToString(code));
 	
 	ExecJavaScript(code);
-	return CComBSTR(jsresult);
+	return CComBSTR(jsresult).Detach();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1126,7 +1124,7 @@ BSTR CWebKitXCtrl::TidyHTML(LPCTSTR HTML)
 	ResetEvent(SIG_TIDY_HTML_READY);
 	CefPostTask(TID_UI,	NewCefRunnableFunction(&ExecuteTidy, HTML, true));
 	WaitForSignal(SIG_TIDY_HTML_READY, INFINITE);		
-	return CComBSTR(jsresult);
+	return CComBSTR(jsresult).Detach();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1163,3 +1161,5 @@ void CWebKitXCtrl::ExecuteTidy(LPCTSTR HTML, bool CleanHTML)
 //"var mousedownEvent = document.createEvent(\"MouseEvent\");\n"
 //"mousedownEvent.initMouseEvent(\"mousedown\",false,false,window,0,0,0,0,0,0,0,0,0,1,target);\n"				
 //"target.dispatchEvent(mousedownEvent);\n"
+
+

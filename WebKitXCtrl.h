@@ -123,10 +123,11 @@ public:
 	OLE_HANDLE hBrowserHWND(void);
 	void LoadHTML(LPCTSTR HTML, LPCTSTR URL);
 	VARIANT_BOOL Created(void);
-	BSTR SelectedHTML(VARIANT_BOOL FullHTML);
-	void OnEditableChanged(void);	
+	BSTR SelectedHTML(VARIANT_BOOL FullHTML);	
 	BSTR ExecJavaScript(LPCTSTR Code);
 	BSTR ExecCommand(LONG id, VARIANT& Params);
+	BSTR TidyHTML(LPCTSTR HTML);
+	VARIANT_BOOL Editable(void);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX Events
@@ -252,14 +253,14 @@ public:
 
 	enum 
 	{								
+		dispidEditable = 21L,
 		dispidTidyHTML = 20L,
 		dispidExecCommand = 19L,
 		dispidExecJavaScript = 18L,
 		dispidaddEventListener = 7L,
 		dispidaddEventListenerEx = 8L,
 		dispidCreated = 16L,
-		dispidEdit = 3L,
-		dispidEditable = 12,
+		dispidEdit = 3L,		
 		dispidhBrowserHWND = 14L,
 		dispidHTML = 2L,
 		dispidLoadHTML = 15L,
@@ -278,8 +279,6 @@ public:
 		eventidOnModified = 4L,
 		eventidOnReady = 1L
 	};	
-protected:
-	BSTR TidyHTML(LPCTSTR HTML);
 };
 
 #endif

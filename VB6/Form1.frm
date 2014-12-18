@@ -1,6 +1,5 @@
 VERSION 5.00
 Object = "{7493F856-8B5B-47C2-8336-71D5CA8433D9}#1.0#0"; "WebKitX.ocx"
-Object = "{BCA00000-0F85-414C-A938-5526E9F1E56A}#4.0#0"; "cmax40.dll"
 Begin VB.Form Form1 
    AutoRedraw      =   -1  'True
    Caption         =   "Form1"
@@ -13,13 +12,24 @@ Begin VB.Form Form1
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   1076
    StartUpPosition =   3  'Windows Default
-   Begin CodeMax4Ctl.CodeMax CodeMax1 
-      Height          =   3405
-      Left            =   7425
-      OleObjectBlob   =   "Form1.frx":0000
+   Begin VB.TextBox Text1 
+      BeginProperty Font 
+         Name            =   "Courier New"
+         Size            =   9
+         Charset         =   161
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   5175
+      Left            =   7395
+      MultiLine       =   -1  'True
+      ScrollBars      =   3  'Both
       TabIndex        =   1
-      Top             =   90
-      Width           =   6570
+      Text            =   "Form1.frx":0000
+      Top             =   195
+      Width           =   6405
    End
    Begin WebKitXLib.WebKitX WebKitX1 
       Height          =   4830
@@ -282,7 +292,7 @@ Private Const S_HTML = "<html><body><button id='btn1'>Hello CEF Ελληνικά</button
 Private Sub Form_Resize()
     On Error Resume Next
     WebKitX1.Move 0, 0, ScaleWidth / 2 - 4, ScaleHeight
-    CodeMax1.Move ScaleWidth / 2, 0, ScaleWidth / 2, ScaleHeight
+    Text1.Move ScaleWidth / 2, 0, ScaleWidth / 2, ScaleHeight
     Err.Clear
 End Sub
 
@@ -428,7 +438,7 @@ Private Sub mnuPaste_Click()
 End Sub
 
 Private Sub mnuPut_Click()
-    WebKitX1.HTML = S_HTML
+    WebKitX1.HTML = Text1.Text
 End Sub
 
 Private Sub mnuMoveCaret_Click()
@@ -503,7 +513,7 @@ End Sub
 Private Sub WebKitX1_OnReady()
     WebKitX1.addEventListener "btn1", "click", AddressOf Module1.OnClick, True
     WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick", True
-    CodeMax1.Text = WebKitX1.HTML
+    Text1.Text = WebKitX1.HTML
 End Sub
 
 Public Function OnClick() As Long
@@ -511,7 +521,7 @@ Public Function OnClick() As Long
 End Function
 
 Private Sub WebKitX1_OnSelectionChanged(ByVal DocumentHTML As String, ByVal SelectedHTML As String)
-    CodeMax1.Text = WebKitX1.TidyHTML(DocumentHTML)
+    Text1.Text = DocumentHTML
     Debug.Print "Selection Changed: " + SelectedHTML
 End Sub
 

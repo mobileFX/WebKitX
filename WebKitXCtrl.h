@@ -92,7 +92,7 @@ public:
 	static void ExecuteAddEventEx(std::string elementID, std::string eventType, IDispatch* vbObject, std::string vbObjectFunctionName, VARIANT_BOOL UseCapture);
 	static void ExecuteSelectNode(std::string selector, bool MoveCaret, bool SelectContents);
 	static void ExecuteCode(LPCTSTR JavaScript);
-	static void ExecuteTidy(LPCTSTR HTML);
+	static void ExecuteTidy(LPCTSTR HTML, bool CleanHTML);
 		
 	template<typename F, typename P> static void ExecuteAddEvent(std::string elementID, std::string eventType, F handler, VARIANT_BOOL UseCapture);
 	template<typename F, typename P> void __addEventHandler(std::string elementID, std::string eventType, F handler, VARIANT_BOOL UseCapture);

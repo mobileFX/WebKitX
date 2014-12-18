@@ -71,10 +71,10 @@ std::string html_for_preview(std::string html)
 	html = Replace(html, "</script>8A1D54C8-1398-417E-BC7C-B8F5CD71F7D5-->", "</script>");
 
 	// Remove content editable
-	html = rxrepace(html, "\\s*contenteditable\\s*=\\s*\"(?:true|false)\"\\s*", "");
+	html = rxrepace(html, "\\s*contenteditable\\s*=\\s*\"(?:true|false)\"", "");
 
 	// Remove __uid attributes
-	html = rxrepace(html, "\\s*__uid\\s*=\\s*\"__uid_\\d+\"\\s*", "");
+	html = rxrepace(html, "\\s*__uid\\s*=\\s*\"__uid_\\d+\"", "");
 
 	return html;
 }

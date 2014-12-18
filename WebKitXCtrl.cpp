@@ -28,7 +28,7 @@ __forceinline void WaitForSignal(HANDLE signal, DWORD TimeOut)
 		if(::WaitForSingleObject(signal, 0)==WAIT_OBJECT_0)
 			return;
 
-		if(GetMessage(&msg, NULL, NULL, NULL))
+		if(PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -781,7 +781,7 @@ void CWebKitXCtrl::Edit(void)
 void CWebKitXCtrl::AttachEditDOMEvents()
 {
 	REQUIRE_UI_THREAD();	
-	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("mousedown"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
+	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("mouseup"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
 	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("selectionchange"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
 	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("DOMSubtreeModified"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);	
 }
@@ -868,10 +868,10 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 		FireOnSelectionChanged();
 	}
 	//==============================================================================================================================================
-	else if(type=="mousedown")		
+	else if(type=="mouseup")		
 	{		
 		focusNodes = target;		
-		FireOnMouseDown();		
+		//FireOnMouseDown();		
 		if(!LoadingHTML)
 			FireOnFocus();		
 	}

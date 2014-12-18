@@ -23,6 +23,7 @@ Begin VB.Form Form1
       _ExtentX        =   28469
       _ExtentY        =   582
       ButtonWidth     =   609
+      ButtonHeight    =   582
       Style           =   1
       ImageList       =   "ImageList1"
       _Version        =   393216

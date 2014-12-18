@@ -59,7 +59,7 @@ void WebKitHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame>
 	{	
 		std::string s(frame->GetURL());
 		debugPrint("Loaded %s.\n", s.c_str());
-		if(s!="about:blank")
+		if(s!="about:blank" || control->m_ActiveXCreated)
 		{			
 			control->FireOnReady();
 		}

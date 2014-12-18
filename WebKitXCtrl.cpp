@@ -690,6 +690,7 @@ void CWebKitXCtrl::OpenURL(LPCTSTR URL)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());		
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();	
+	LOADING=true;
 	debugPrint("Open URL %s.\n", URL);
 	m_Browser->StopLoad();
 	m_Browser->GetMainFrame()->LoadURL(CefString(URL));	
@@ -702,6 +703,7 @@ void CWebKitXCtrl::Reload(void)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();	
+	LOADING=true;
 	if(m_Browser)
 		m_Browser->ReloadIgnoreCache();
 	SetModifiedFlag(FALSE);	
@@ -713,6 +715,7 @@ void CWebKitXCtrl::SetHTML(LPCTSTR HTML)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();	
+	LOADING=true;
 	m_Browser->StopLoad();
 	m_Browser->GetMainFrame()->LoadStringW(LPCTSTR_to_CefString(HTML,m_Editable==VARIANT_TRUE), "http://localhost");	
 	SetModifiedFlag(FALSE);
@@ -724,6 +727,7 @@ void CWebKitXCtrl::LoadHTML(LPCTSTR HTML, LPCTSTR URL)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();
+	LOADING=true;
 	m_Browser->StopLoad();
 	m_Browser->GetMainFrame()->LoadStringW(LPCTSTR_to_CefString(HTML,true), CefString(URL));	
 	SetModifiedFlag(FALSE);
@@ -837,8 +841,11 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 
 	//==============================================================================================================================================
 	if(type=="DOMSubtreeModified") 
-	{		
-		FireOnModified();
+	{
+		if(LOADING)
+			LOADING = false;
+		else
+			FireOnModified();
 	}
 	//==============================================================================================================================================
 	else if(type=="selectionchange")
@@ -871,7 +878,6 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 	else if(type=="mouseup")		
 	{		
 		focusNodes = target;		
-		//FireOnMouseDown();		
 		if(!LoadingHTML)
 			FireOnFocus();		
 	}

@@ -38,7 +38,7 @@ Begin VB.Form Form1
       ImageList       =   "ImageList1"
       _Version        =   393216
       BeginProperty Buttons {66833FE8-8583-11D1-B16A-00C0F0283628} 
-         NumButtons      =   31
+         NumButtons      =   34
          BeginProperty Button1 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Key             =   "CUT"
             Object.ToolTipText     =   "Cut"
@@ -146,32 +146,43 @@ Begin VB.Form Form1
             Style           =   3
          EndProperty
          BeginProperty Button25 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Key             =   "LINK"
-            Object.ToolTipText     =   "Hyperlink..."
-            ImageIndex      =   37
+            Key             =   "REMOVE_FORMAT"
+            ImageIndex      =   28
          EndProperty
          BeginProperty Button26 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Key             =   "UNLINK"
-            Object.ToolTipText     =   "Remove Hyperlink"
-            ImageIndex      =   38
+            Key             =   "CSS3"
+            ImageIndex      =   43
          EndProperty
          BeginProperty Button27 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Style           =   3
          EndProperty
          BeginProperty Button28 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Key             =   "NUMBERS"
-            Object.ToolTipText     =   "Numbered List"
-            ImageIndex      =   20
+            Key             =   "LINK"
+            Object.ToolTipText     =   "Hyperlink..."
+            ImageIndex      =   37
          EndProperty
          BeginProperty Button29 {66833FEA-8583-11D1-B16A-00C0F0283628} 
-            Key             =   "LIST"
-            Object.ToolTipText     =   "List"
-            ImageIndex      =   21
+            Key             =   "UNLINK"
+            Object.ToolTipText     =   "Remove Hyperlink"
+            ImageIndex      =   38
          EndProperty
          BeginProperty Button30 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Style           =   3
          EndProperty
          BeginProperty Button31 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Key             =   "NUMBERS"
+            Object.ToolTipText     =   "Numbered List"
+            ImageIndex      =   20
+         EndProperty
+         BeginProperty Button32 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Key             =   "LIST"
+            Object.ToolTipText     =   "List"
+            ImageIndex      =   21
+         EndProperty
+         BeginProperty Button33 {66833FEA-8583-11D1-B16A-00C0F0283628} 
+            Style           =   3
+         EndProperty
+         BeginProperty Button34 {66833FEA-8583-11D1-B16A-00C0F0283628} 
             Key             =   "IMAGE"
             Object.ToolTipText     =   "Image..."
             ImageIndex      =   9
@@ -189,7 +200,7 @@ Begin VB.Form Form1
       MaskColor       =   12632256
       _Version        =   393216
       BeginProperty Images {2C247F25-8591-11D1-B16A-00C0F0283628} 
-         NumListImages   =   42
+         NumListImages   =   43
          BeginProperty ListImage1 {2C247F27-8591-11D1-B16A-00C0F0283628} 
             Picture         =   "Form1.frx":058A
             Key             =   "BOLD"
@@ -358,6 +369,10 @@ Begin VB.Form Form1
             Picture         =   "Form1.frx":E2D4
             Key             =   ""
          EndProperty
+         BeginProperty ListImage43 {2C247F27-8591-11D1-B16A-00C0F0283628} 
+            Picture         =   "Form1.frx":E66E
+            Key             =   ""
+         EndProperty
       EndProperty
    End
    Begin VB.TextBox txtLog 
@@ -395,7 +410,7 @@ Begin VB.Form Form1
       MultiLine       =   -1  'True
       ScrollBars      =   3  'Both
       TabIndex        =   1
-      Text            =   "Form1.frx":E66E
+      Text            =   "Form1.frx":EE80
       Top             =   870
       Width           =   6405
    End
@@ -413,7 +428,10 @@ Begin VB.Form Form1
    Begin VB.Menu mnuFile 
       Caption         =   "File"
       Begin VB.Menu mnuOpen 
-         Caption         =   "Open"
+         Caption         =   "Open URL..."
+      End
+      Begin VB.Menu sp25 
+         Caption         =   "-"
       End
       Begin VB.Menu mnuPut 
          Caption         =   "Put HTML"
@@ -442,15 +460,16 @@ Begin VB.Form Form1
       Begin VB.Menu mnuMoveCaret 
          Caption         =   "Move Caret"
       End
-      Begin VB.Menu sp2 
-         Caption         =   "-"
-      End
-      Begin VB.Menu mnuEditable 
-         Caption         =   "Editable"
-      End
    End
    Begin VB.Menu mnuEdit 
       Caption         =   "Edit"
+      Begin VB.Menu mnuEditable 
+         Caption         =   "Enable HTML Editing"
+         Shortcut        =   {F2}
+      End
+      Begin VB.Menu sp2 
+         Caption         =   "-"
+      End
       Begin VB.Menu mnuUndo 
          Caption         =   "Undo"
          Shortcut        =   ^Z
@@ -460,6 +479,13 @@ Begin VB.Form Form1
          Shortcut        =   ^R
       End
       Begin VB.Menu sp4 
+         Caption         =   "-"
+      End
+      Begin VB.Menu mnuSelectAll 
+         Caption         =   "Select All"
+         Shortcut        =   ^A
+      End
+      Begin VB.Menu sp23 
          Caption         =   "-"
       End
       Begin VB.Menu mnuCut 
@@ -497,9 +523,8 @@ Begin VB.Form Form1
       Begin VB.Menu sp15 
          Caption         =   "-"
       End
-      Begin VB.Menu mnuSelectAll 
-         Caption         =   "Select All"
-         Shortcut        =   ^A
+      Begin VB.Menu mnuClearLog 
+         Caption         =   "Clear Log"
       End
    End
    Begin VB.Menu mnuFormat 
@@ -681,6 +706,10 @@ End Sub
 
 Private Sub mnuCenter_Click()
     WebKitX1.ExecCommand EDIT_CMD_JUSTIFYCENTER
+End Sub
+
+Private Sub mnuClearLog_Click()
+    txtLog = ""
 End Sub
 
 Private Sub mnuCopy_Click()
@@ -887,11 +916,13 @@ Private Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
     Case 20: mnuForeColor_Click
     Case 21: mnuBackColor_Click
     Case 23: mnuFont_Click
-    Case 25: mnuCreateLink_Click
-    Case 26: mnuUnlink_Click
-    Case 28: mnuInsertOrderedList_Click
-    Case 29: mnuInsertUnorderedList_Click
-    Case 31: mnuInsertImage_Click
+    Case 25: mnuRemoveFormat_Click
+    Case 26: mnuStyleWithCSS_Click
+    Case 28: mnuCreateLink_Click
+    Case 29: mnuUnlink_Click
+    Case 31: mnuInsertOrderedList_Click
+    Case 32: mnuInsertUnorderedList_Click
+    Case 34: mnuInsertImage_Click
     End Select
 End Sub
 

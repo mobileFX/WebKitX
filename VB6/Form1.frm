@@ -1,18 +1,28 @@
 VERSION 5.00
 Object = "{7493F856-8B5B-47C2-8336-71D5CA8433D9}#1.0#0"; "WebKitX.ocx"
 Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "mscomctl.ocx"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "ComDlg32.OCX"
 Begin VB.Form Form1 
    AutoRedraw      =   -1  'True
-   Caption         =   "Form1"
+   Caption         =   "WebKitX as HTML5 Editor"
    ClientHeight    =   9060
    ClientLeft      =   225
    ClientTop       =   855
    ClientWidth     =   16140
+   Icon            =   "Form1.frx":0000
    LinkTopic       =   "Form1"
    ScaleHeight     =   604
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   1076
    StartUpPosition =   3  'Windows Default
+   Begin MSComDlg.CommonDialog CommonDialog1 
+      Left            =   14460
+      Top             =   3600
+      _ExtentX        =   847
+      _ExtentY        =   847
+      _Version        =   393216
+      CancelError     =   -1  'True
+   End
    Begin MSComctlLib.Toolbar Toolbar1 
       Align           =   1  'Align Top
       Height          =   330
@@ -181,171 +191,171 @@ Begin VB.Form Form1
       BeginProperty Images {2C247F25-8591-11D1-B16A-00C0F0283628} 
          NumListImages   =   42
          BeginProperty ListImage1 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":0000
+            Picture         =   "Form1.frx":058A
             Key             =   "BOLD"
          EndProperty
          BeginProperty ListImage2 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":0812
+            Picture         =   "Form1.frx":0D9C
             Key             =   "ITALIC"
          EndProperty
          BeginProperty ListImage3 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":1024
+            Picture         =   "Form1.frx":15AE
             Key             =   "UNDERLINE"
          EndProperty
          BeginProperty ListImage4 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":1836
+            Picture         =   "Form1.frx":1DC0
             Key             =   "UNDO"
          EndProperty
          BeginProperty ListImage5 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":2048
+            Picture         =   "Form1.frx":25D2
             Key             =   "COLOR"
          EndProperty
          BeginProperty ListImage6 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":285A
+            Picture         =   "Form1.frx":2DE4
             Key             =   "ERASE"
          EndProperty
          BeginProperty ListImage7 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":2BF4
+            Picture         =   "Form1.frx":317E
             Key             =   "FONT_COLOR"
          EndProperty
          BeginProperty ListImage8 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":318E
+            Picture         =   "Form1.frx":3718
             Key             =   "HTML"
          EndProperty
          BeginProperty ListImage9 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":3528
+            Picture         =   "Form1.frx":3AB2
             Key             =   "PICTURE"
          EndProperty
          BeginProperty ListImage10 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":3D3A
+            Picture         =   "Form1.frx":42C4
             Key             =   "ALIGN_LEFT"
          EndProperty
          BeginProperty ListImage11 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":454C
+            Picture         =   "Form1.frx":4AD6
             Key             =   "ALIGN_RIGHT"
          EndProperty
          BeginProperty ListImage12 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":4D5E
+            Picture         =   "Form1.frx":52E8
             Key             =   "LINK"
          EndProperty
          BeginProperty ListImage13 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":5570
+            Picture         =   "Form1.frx":5AFA
             Key             =   "BACKGROUND_COLOR"
          EndProperty
          BeginProperty ListImage14 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":5D82
+            Picture         =   "Form1.frx":630C
             Key             =   "DELETE"
          EndProperty
          BeginProperty ListImage15 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":6594
+            Picture         =   "Form1.frx":6B1E
             Key             =   "UNLINK"
          EndProperty
          BeginProperty ListImage16 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":6DA6
+            Picture         =   "Form1.frx":7330
             Key             =   ""
          EndProperty
          BeginProperty ListImage17 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":7140
+            Picture         =   "Form1.frx":76CA
             Key             =   ""
          EndProperty
          BeginProperty ListImage18 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":76DA
+            Picture         =   "Form1.frx":7C64
             Key             =   ""
          EndProperty
          BeginProperty ListImage19 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":7C74
+            Picture         =   "Form1.frx":81FE
             Key             =   ""
          EndProperty
          BeginProperty ListImage20 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":820E
+            Picture         =   "Form1.frx":8798
             Key             =   ""
          EndProperty
          BeginProperty ListImage21 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":87A8
+            Picture         =   "Form1.frx":8D32
             Key             =   ""
          EndProperty
          BeginProperty ListImage22 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":8D42
+            Picture         =   "Form1.frx":92CC
             Key             =   ""
          EndProperty
          BeginProperty ListImage23 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":92DC
+            Picture         =   "Form1.frx":9866
             Key             =   ""
          EndProperty
          BeginProperty ListImage24 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":9876
+            Picture         =   "Form1.frx":9E00
             Key             =   ""
          EndProperty
          BeginProperty ListImage25 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":9E10
+            Picture         =   "Form1.frx":A39A
             Key             =   ""
          EndProperty
          BeginProperty ListImage26 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":A3AA
+            Picture         =   "Form1.frx":A934
             Key             =   ""
          EndProperty
          BeginProperty ListImage27 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":A744
+            Picture         =   "Form1.frx":ACCE
             Key             =   ""
          EndProperty
          BeginProperty ListImage28 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":AADE
+            Picture         =   "Form1.frx":B068
             Key             =   ""
          EndProperty
          BeginProperty ListImage29 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":AE78
+            Picture         =   "Form1.frx":B402
             Key             =   ""
          EndProperty
          BeginProperty ListImage30 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":B212
+            Picture         =   "Form1.frx":B79C
             Key             =   ""
          EndProperty
          BeginProperty ListImage31 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":B5AC
+            Picture         =   "Form1.frx":BB36
             Key             =   ""
          EndProperty
          BeginProperty ListImage32 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":B946
+            Picture         =   "Form1.frx":BED0
             Key             =   ""
          EndProperty
          BeginProperty ListImage33 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":BCE0
+            Picture         =   "Form1.frx":C26A
             Key             =   ""
          EndProperty
          BeginProperty ListImage34 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":C07A
+            Picture         =   "Form1.frx":C604
             Key             =   ""
          EndProperty
          BeginProperty ListImage35 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":C414
+            Picture         =   "Form1.frx":C99E
             Key             =   ""
          EndProperty
          BeginProperty ListImage36 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":C7AE
+            Picture         =   "Form1.frx":CD38
             Key             =   ""
          EndProperty
          BeginProperty ListImage37 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":CB48
+            Picture         =   "Form1.frx":D0D2
             Key             =   ""
          EndProperty
          BeginProperty ListImage38 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":CEE2
+            Picture         =   "Form1.frx":D46C
             Key             =   ""
          EndProperty
          BeginProperty ListImage39 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":D27C
+            Picture         =   "Form1.frx":D806
             Key             =   ""
          EndProperty
          BeginProperty ListImage40 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":D616
+            Picture         =   "Form1.frx":DBA0
             Key             =   ""
          EndProperty
          BeginProperty ListImage41 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":D9B0
+            Picture         =   "Form1.frx":DF3A
             Key             =   ""
          EndProperty
          BeginProperty ListImage42 {2C247F27-8591-11D1-B16A-00C0F0283628} 
-            Picture         =   "Form1.frx":DD4A
+            Picture         =   "Form1.frx":E2D4
             Key             =   ""
          EndProperty
       EndProperty
@@ -385,7 +395,7 @@ Begin VB.Form Form1
       MultiLine       =   -1  'True
       ScrollBars      =   3  'Both
       TabIndex        =   1
-      Text            =   "Form1.frx":E0E4
+      Text            =   "Form1.frx":E66E
       Top             =   870
       Width           =   6405
    End
@@ -659,7 +669,10 @@ Private Sub Form_Resize()
 End Sub
 
 Private Sub mnuBackColor_Click()
-    WebKitX1.ExecCommand EDIT_CMD_BACKCOLOR, "yellow"
+    On Error Resume Next
+    CommonDialog1.ShowColor
+    If Err Then Exit Sub
+    WebKitX1.ExecCommand EDIT_CMD_BACKCOLOR, "rgb(" & GetRed(CommonDialog1.Color) & "," & GetGreen(CommonDialog1.Color) & "," & GetBlue(CommonDialog1.Color) & ")"
 End Sub
 
 Private Sub mnuBold_Click()
@@ -701,7 +714,10 @@ Private Sub mnuFont_Click()
 End Sub
 
 Private Sub mnuForeColor_Click()
-    WebKitX1.ExecCommand EDIT_CMD_FORECOLOR, "red"
+    On Error Resume Next
+    CommonDialog1.ShowColor
+    If Err Then Exit Sub
+    WebKitX1.ExecCommand EDIT_CMD_FORECOLOR, "rgb(" & GetRed(CommonDialog1.Color) & "," & GetGreen(CommonDialog1.Color) & "," & GetBlue(CommonDialog1.Color) & ")"
 End Sub
 
 Private Sub mnuFormatBlock_Click()
@@ -912,3 +928,17 @@ End Sub
 Public Sub OnClick()
     AddLog "EventListener: OnClick"
 End Sub
+
+Private Function GetBlue(ByVal Color As Long) As Byte
+    GetBlue = CLng((Color And &HFF0000) \ &H10000)
+End Function
+
+Private Function GetGreen(ByVal Color As Long) As Byte
+    GetGreen = CLng((Color And &HFF00&) \ &H100&)
+End Function
+
+Private Function GetRed(ByVal Color As Long) As Byte
+    GetRed = CLng(Color And &HFF&)
+End Function
+
+

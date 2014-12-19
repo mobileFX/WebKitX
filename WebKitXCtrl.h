@@ -58,7 +58,6 @@ public:
 	bool LoadingHTML;	
 	CComBSTR jsresult;
 	std::vector<std::string> EditorCommands;
-	bool LOADING;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	CWebKitXCtrl();
@@ -91,7 +90,7 @@ public:
 	static void ExecuteGetSource(CefRefPtr<CefFrame> frame);
 	static void ExecuteEditable(CefRefPtr<CefFrame> frame);		
 	static void ExecuteAddEventEx(std::string elementID, std::string eventType, IDispatch* vbObject, std::string vbObjectFunctionName, VARIANT_BOOL UseCapture);
-	static void ExecuteSelectNode(std::string selector, bool MoveCaret, bool SelectContents);
+	static void ExecuteSelectNode(std::string selector, std::string html, bool MoveCaret, bool SelectContents);
 	static void ExecuteCode(LPCTSTR JavaScript);
 	static void ExecuteTidy(LPCTSTR HTML, bool CleanHTML);
 		
@@ -104,7 +103,6 @@ public:
 
 	void AttachEditDOMEvents();
 	void __set_attribute(std::string selector, std::string attrName, std::string attrValue);	
-	CefRefPtr<CefDOMNode> __selectSingleNode(std::string selector, bool MoveCaret, bool SelectContents);	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX API
@@ -128,7 +126,9 @@ public:
 	BSTR ExecJavaScript(LPCTSTR Code);
 	BSTR ExecCommand(LONG id, VARIANT& Params);
 	BSTR TidyHTML(LPCTSTR HTML);
+	BSTR CleanHTML(LPCTSTR HTML);
 	VARIANT_BOOL Editable(void);
+	void Find(LPCTSTR HTML);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX Events
@@ -212,8 +212,6 @@ public:
 	void OnSelectionChangedTimer() { KillTimer(ON_SELECTION_CHANGED_TIMER); OnSelectionChanged(); }
 	void OnSelectionChanged(void)
 	{
-		//CComBSTR html(SelectedHTML(VARIANT_FALSE));
-		debugPrint("OnSelectionChanged: %s\n", _com_util::ConvertBSTRToString(g_instnace->selection));		
 		FireEvent(eventidOnSelectionChanged, EVENT_PARAM(VTS_BSTR VTS_BSTR), document_html, selection);		
 	}
 
@@ -254,6 +252,8 @@ public:
 
 	enum 
 	{								
+		dispidFind = 23L,
+		dispidCleanHTML = 22L,
 		dispidEditable = 21L,
 		dispidTidyHTML = 20L,
 		dispidExecCommand = 19L,
@@ -279,7 +279,7 @@ public:
 		eventidOnFocus = 3L,
 		eventidOnModified = 4L,
 		eventidOnReady = 1L
-	};	
+	};		
 };
 
 #endif

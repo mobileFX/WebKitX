@@ -22,6 +22,7 @@ bool CWebKitXCtrl::CEF_INITIALIZED = false;
 
 __forceinline void WaitForSignal(HANDLE signal, DWORD TimeOut)
 {
+	//CoWaitForMultipleHandles()
 	MSG msg;
 	for(;;)
 	{	
@@ -81,6 +82,8 @@ BEGIN_DISPATCH_MAP(CWebKitXCtrl, COleControl)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "ExecCommand", dispidExecCommand, ExecCommand, VT_BSTR, VTS_I4 VTS_VARIANT)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "TidyHTML", dispidTidyHTML, TidyHTML, VT_BSTR, VTS_BSTR)
 	DISP_FUNCTION_ID(CWebKitXCtrl, "Editable", dispidEditable, Editable, VT_BOOL, VTS_NONE)
+	DISP_FUNCTION_ID(CWebKitXCtrl, "CleanHTML", dispidCleanHTML, CleanHTML, VT_BSTR, VTS_BSTR)
+	DISP_FUNCTION_ID(CWebKitXCtrl, "Find", dispidFind, Find, VT_EMPTY, VTS_BSTR)
 END_DISPATCH_MAP()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -690,7 +693,6 @@ void CWebKitXCtrl::OpenURL(LPCTSTR URL)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());		
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();	
-	LOADING=true;
 	debugPrint("Open URL %s.\n", URL);
 	m_Browser->StopLoad();
 	m_Browser->GetMainFrame()->LoadURL(CefString(URL));	
@@ -703,7 +705,6 @@ void CWebKitXCtrl::Reload(void)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();	
-	LOADING=true;
 	if(m_Browser)
 		m_Browser->ReloadIgnoreCache();
 	SetModifiedFlag(FALSE);	
@@ -715,7 +716,6 @@ void CWebKitXCtrl::SetHTML(LPCTSTR HTML)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();	
-	LOADING=true;
 	m_Browser->StopLoad();
 	m_Browser->GetMainFrame()->LoadStringW(LPCTSTR_to_CefString(HTML,m_Editable==VARIANT_TRUE), "http://localhost");	
 	SetModifiedFlag(FALSE);
@@ -727,7 +727,6 @@ void CWebKitXCtrl::LoadHTML(LPCTSTR HTML, LPCTSTR URL)
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	if(!AmbientUserMode() || !m_Browser) return;
 	REQUIRE_UI_THREAD();
-	LOADING=true;
 	m_Browser->StopLoad();
 	m_Browser->GetMainFrame()->LoadStringW(LPCTSTR_to_CefString(HTML,true), CefString(URL));	
 	SetModifiedFlag(FALSE);
@@ -841,11 +840,8 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 
 	//==============================================================================================================================================
 	if(type=="DOMSubtreeModified") 
-	{
-		if(LOADING)
-			LOADING = false;
-		else
-			FireOnModified();
+	{		
+		FireOnModified();
 	}
 	//==============================================================================================================================================
 	else if(type=="selectionchange")
@@ -878,6 +874,7 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 	else if(type=="mouseup")		
 	{		
 		focusNodes = target;		
+		//FireOnMouseDown();		
 		if(!LoadingHTML)
 			FireOnFocus();		
 	}
@@ -962,19 +959,19 @@ void CWebKitXCtrl::SelectElement(LPCTSTR Selector, VARIANT_BOOL MoveCaret, VARIA
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	USES_CONVERSION;
-	__selectSingleNode(std::string(T2A(Selector)), (bool)(MoveCaret!=0), (bool)(SelectContents!=0));
+	CefPostTask(TID_UI, NewCefRunnableFunction(&ExecuteSelectNode, std::string(T2A(Selector)), std::string(""), (bool)(MoveCaret!=0), (bool)(SelectContents!=0)));		
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-CefRefPtr<CefDOMNode> CWebKitXCtrl::__selectSingleNode(std::string selector, bool MoveCaret, bool SelectContents)
+void CWebKitXCtrl::Find(LPCTSTR HTML)
 {
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());		
-	CefPostTask(TID_UI, NewCefRunnableFunction(&ExecuteSelectNode, selector, MoveCaret, SelectContents));	
-	return NULL;
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	USES_CONVERSION;	
+	CefPostTask(TID_UI, NewCefRunnableFunction(&ExecuteSelectNode, std::string(""), std::string(T2A(HTML)), false, false));		
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool MoveCaret, bool SelectContents)
+void CWebKitXCtrl::ExecuteSelectNode(std::string selector, std::string fragment, bool MoveCaret, bool SelectContents)
 {
 	REQUIRE_UI_THREAD();
 
@@ -982,27 +979,41 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, bool MoveCaret, bool 
 	{
 		g_instnace->v8context->Enter();
 		{
-			std::string code = "(function(MoveCaret, SelectContents){\n" 
-				"var target = document.querySelectorAll('" + selector + "')[0];\n"
-				"if(!target) return;"
-				"target.focus();\n"		
-				"var range = document.createRange();\n"				
-				"if(SelectContents)\n"
-				"  range.selectNodeContents(target);\n"
-				"else\n"
-				"  range.selectNode(target);\n"
-				"if(MoveCaret) {\n"
-				"  var startNode = target.firstChild;\n"
-				"  var endNode = target.firstChild;\n"
-				"  range.setStart(startNode, 0);\n"
-				"  range.setEnd(endNode, 0);\n"
-				"}\n"
-				"var sel = window.getSelection();\n"
-				"sel.removeAllRanges();\n"
-				"sel.addRange(range);\n"				
-				"var sel=window.getSelection().focusNode;\n"
-				"return (sel.nodeType==3?sel.parentNode:sel).outerHTML;\n"
-				"})(" + (MoveCaret?"true":"false") + "," + (SelectContents?"true":"false") + ");";
+			std::string code = "(function(Selector, Fragment, MoveCaret, SelectContents){\n" 				
+								"var target = null;\n"
+								"Fragment=Fragment.trim().toLowerCase();\n"
+								"if(Fragment.length){\n"
+								"  var s = window.getSelection();\n"
+								"  s.removeAllRanges();\n"
+								"  var all = document.querySelectorAll(\"*\");\n"
+								"  for(var i=0;i<all.length;i++)\n"
+								"  {\n"
+								"	var target = all[i];\n"
+								"	if(target.outerHTML.toLowerCase()==Fragment) break;\n" 
+								"  }\n"
+								"}\n"
+								"else\n"
+								"  target = document.querySelectorAll(Selector)[0];\n"
+								"if(!target || target==document.body) return;"
+								"target.scrollIntoView();\n"
+								"target.focus();\n"		
+								"var range = document.createRange();\n"				
+								"if(SelectContents)\n"
+								"  range.selectNodeContents(target);\n"
+								"else\n"
+								"  range.selectNode(target);\n"
+								"if(MoveCaret) {\n"
+								"  var startNode = target.firstChild;\n"
+								"  var endNode = target.firstChild;\n"
+								"  range.setStart(startNode, 0);\n"
+								"  range.setEnd(endNode, 0);\n"
+								"}\n"
+								"var sel = window.getSelection();\n"
+								"sel.removeAllRanges();\n"
+								"sel.addRange(range);\n"				
+								"var sel=window.getSelection().focusNode;\n"
+								"return (sel.nodeType==3?sel.parentNode:sel).outerHTML;\n"
+								"})(\"" + selector + "\",\"" + fragment + "\"," + (MoveCaret?"true":"false") + "," + (SelectContents?"true":"false") + ");";
 			
 			CefRefPtr<CefV8Value> retval;
 			CefRefPtr<CefV8Exception> exception;
@@ -1115,8 +1126,6 @@ BSTR CWebKitXCtrl::ExecCommand(LONG id, VARIANT& Params)
 	code.Append("\", false, \"");
 	code.Append(Params.bstrVal);
 	code.Append("\")");	
-
-	debugPrint("%s\n", _com_util::ConvertBSTRToString(code));
 	
 	ExecJavaScript(code);
 	return CComBSTR(jsresult).Detach();
@@ -1163,9 +1172,23 @@ void CWebKitXCtrl::ExecuteTidy(LPCTSTR HTML, bool CleanHTML)
 	SetEvent(g_instnace->SIG_TIDY_HTML_READY);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+BSTR CWebKitXCtrl::CleanHTML(LPCTSTR HTML)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	CComBSTR _html(HTML);
+	std::string shtml(_com_util::ConvertBSTRToString(_html.m_str));
+	shtml = html_for_preview(shtml);
+	_html = _com_util::ConvertStringToBSTR(shtml.c_str());
+	return _html.Detach();
+}
+
 
 //"var mousedownEvent = document.createEvent(\"MouseEvent\");\n"
 //"mousedownEvent.initMouseEvent(\"mousedown\",false,false,window,0,0,0,0,0,0,0,0,0,1,target);\n"				
 //"target.dispatchEvent(mousedownEvent);\n"
+
+
+
 
 

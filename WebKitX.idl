@@ -93,6 +93,8 @@ library WebKitXLib
 			[id(19)] BSTR ExecCommand([in] EDIT_COMMAND id, [in, optional] VARIANT Params);
 			[id(20)] BSTR TidyHTML(BSTR HTML);
 			[id(21)] VARIANT_BOOL Editable(void);
+			[id(22)] BSTR CleanHTML(BSTR HTML);
+			[id(23)] void Find(BSTR HTML);
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -460,6 +460,9 @@ Begin VB.Form Form1
       Begin VB.Menu mnuMoveCaret 
          Caption         =   "Move Caret"
       End
+      Begin VB.Menu mnuSelHTML 
+         Caption         =   "Select by HTML"
+      End
    End
    Begin VB.Menu mnuEdit 
       Caption         =   "Edit"
@@ -862,6 +865,10 @@ End Sub
 
 Private Sub mnuSelectOuter_Click()
     WebKitX1.SelectElement "#div1", False, False
+End Sub
+
+Private Sub mnuSelHTML_Click()
+    WebKitX1.Find "<span>some</span>"
 End Sub
 
 Private Sub mnuStrikeThrough_Click()

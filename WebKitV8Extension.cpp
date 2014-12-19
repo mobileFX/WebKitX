@@ -53,6 +53,5 @@ bool WebKitV8Extension::Execute(const CefString& name, CefRefPtr<CefV8Value> obj
 bool WebKitV8Extension::__selectedNode(CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval, CefString& exception)
 {
 	std::string uid(arguments[0]->GetStringValue());
-	debugPrint("uid=%s\n", uid.c_str());
 	return true;
 }

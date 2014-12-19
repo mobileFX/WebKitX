@@ -15,7 +15,6 @@ IMPLEMENT_DYNCREATE(CWebKitXCtrl, COleControl)
 
 CWebKitXCtrl* CWebKitXCtrl::g_instnace = NULL;
 extern CefRefPtr<WebKitHandler> g_handler = NULL;
-std::string CWebKitXCtrl::focusNodes("");
 bool CWebKitXCtrl::CEF_INITIALIZED = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,11 +88,11 @@ END_DISPATCH_MAP()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Event map
 BEGIN_EVENT_MAP(CWebKitXCtrl, COleControl)
+	EVENT_STOCK_MOUSEDOWN()
 	EVENT_CUSTOM_ID("OnReady", eventidOnReady, OnReady, VTS_NONE)
 	EVENT_CUSTOM_ID("OnCreate", eventidOnCreate, OnCreate, VTS_NONE)
-	EVENT_CUSTOM_ID("OnFocus", eventidOnFocus, OnFocus, VTS_BSTR)
-	EVENT_CUSTOM_ID("OnModified", eventidOnModified, OnModified, VTS_NONE)	
-	EVENT_STOCK_MOUSEDOWN()
+	EVENT_CUSTOM_ID("OnFocus", eventidOnFocus, OnFocus, VTS_BSTR VTS_BSTR)
+	EVENT_CUSTOM_ID("OnModified", eventidOnModified, OnModified, VTS_NONE)		
 	EVENT_CUSTOM_ID("OnSelectionChanged", eventidOnSelectionChanged, OnSelectionChanged, VTS_BSTR VTS_BSTR)
 END_EVENT_MAP()
 
@@ -141,7 +140,8 @@ CWebKitXCtrl::CWebKitXCtrl() :
 	LoadingHTML(false),
 	SIG_HTML_SELECTION_READY(NULL),
 	SIG_JAVASCRIPT_READY(NULL),
-	SIG_TIDY_HTML_READY(NULL)
+	SIG_TIDY_HTML_READY(NULL),
+	SkipSelectionEvent(false)
 
 {
 	InitializeIIDs(&IID_DWebKitX, &IID_DWebKitXEvents);	
@@ -521,6 +521,12 @@ VARIANT_BOOL CWebKitXCtrl::Modified(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+BSTR CWebKitXCtrl::SelectedHTML(VARIANT_BOOL FullHTML)
+{	
+	return SelectedNodeHTML.Detach();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Add Event Listener to Visual Basic 6 Class Public Function
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -785,7 +791,7 @@ void CWebKitXCtrl::AttachEditDOMEvents()
 {
 	REQUIRE_UI_THREAD();	
 	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("mouseup"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
-	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("selectionchange"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
+	//g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("selectionchange"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);
 	g_instnace->__addEventHandler<EVENT_HANDLER_FN, CefRefPtr<CefDOMEvent>*>(std::string("document"), std::string("DOMSubtreeModified"), &CWebKitXCtrl::__HandleDOMEvent, VARIANT_TRUE);	
 }
 
@@ -834,6 +840,7 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 		node = node->GetParent();		
 	}	
 	std::string target = join(path.begin(), path.end(), std::string("/"));
+	FocusedNodePath = CComBSTR(target.c_str());
 
 	// Trace
 	debugPrint("DOMEvent: %s, target: %s\n", type.c_str(), target.c_str());
@@ -844,42 +851,36 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 		FireOnModified();
 	}
 	//==============================================================================================================================================
-	else if(type=="selectionchange")
-	{
-		document_html = CefString_to_BSTR(DOMEvent->GetTarget()->GetDocument()->GetDocument()->GetAsMarkup(), false);
-		
-		selection = "";
-
-		std::string code =  "(function(){var sel=window.getSelection().focusNode; return (sel.nodeType==3?sel.parentNode:sel).outerHTML;})()";
-
-		CefString _code(code.c_str());
-		CefRefPtr<CefV8Value> result;
-		CefRefPtr<CefV8Exception> exception;
-
-		v8context->Enter();
-		{
-			v8context->Eval(_code, result, exception);
-		}				
-		v8context->Exit();
-
-		if(result && result->IsString())
-		{
-			CefString html = result->GetStringValue();
-			selection = CefString_to_BSTR(html, false);		
-		}				
-
-		FireOnSelectionChanged();
-	}
-	//==============================================================================================================================================
 	else if(type=="mouseup")		
-	{		
-		focusNodes = target;		
-		//FireOnMouseDown();		
+	{				
 		if(!LoadingHTML)
+		{
+			SelectedNodeHTML = getSelectedNodeHTML(true);
 			FireOnFocus();		
+		}
 	}
 
 	ReEnter=false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+CComBSTR CWebKitXCtrl::getSelectedNodeHTML(bool CleanHTML)
+{
+	CComBSTR sel("");
+	//document_html = CefString_to_BSTR(DOMEvent->GetTarget()->GetDocument()->GetDocument()->GetAsMarkup(), false);
+	std::string code =  "(function(){var sel=window.getSelection().focusNode; return (sel.nodeType==3?sel.parentNode:sel).outerHTML;})()";
+	CefString _code(code.c_str());
+	CefRefPtr<CefV8Value> result;
+	CefRefPtr<CefV8Exception> exception;
+	v8context->Enter();
+	v8context->Eval(_code, result, exception);
+	v8context->Exit();
+	if(result && result->IsString())
+	{
+		CefString html = result->GetStringValue();
+		sel = CefString_to_BSTR(html, CleanHTML);		
+	}
+	return sel;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -963,15 +964,15 @@ void CWebKitXCtrl::SelectElement(LPCTSTR Selector, VARIANT_BOOL MoveCaret, VARIA
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::Find(LPCTSTR HTML)
+void CWebKitXCtrl::Find(LPCTSTR RegularExpression)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	USES_CONVERSION;	
-	CefPostTask(TID_UI, NewCefRunnableFunction(&ExecuteSelectNode, std::string(""), std::string(T2A(HTML)), false, false));		
+	CefPostTask(TID_UI, NewCefRunnableFunction(&ExecuteSelectNode, std::string(""), std::string(T2A(RegularExpression)), false, false));		
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CWebKitXCtrl::ExecuteSelectNode(std::string selector, std::string fragment, bool MoveCaret, bool SelectContents)
+void CWebKitXCtrl::ExecuteSelectNode(std::string selector, std::string rx, bool MoveCaret, bool SelectContents)
 {
 	REQUIRE_UI_THREAD();
 
@@ -979,9 +980,11 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, std::string fragment,
 	{
 		g_instnace->v8context->Enter();
 		{
-			std::string code = "(function(Selector, Fragment, MoveCaret, SelectContents){\n" 				
+			g_instnace->SkipSelectionEvent = true;
+
+			std::string code = "__selectNode = function(Selector, Fragment, MoveCaret, SelectContents){\n" 				
 								"var target = null;\n"
-								"Fragment=Fragment.trim().toLowerCase();\n"
+								"Fragment = Fragment.toLowerCase().trim();\n"
 								"if(Fragment.length){\n"
 								"  var s = window.getSelection();\n"
 								"  s.removeAllRanges();\n"
@@ -989,7 +992,9 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, std::string fragment,
 								"  for(var i=0;i<all.length;i++)\n"
 								"  {\n"
 								"	var target = all[i];\n"
-								"	if(target.outerHTML.toLowerCase()==Fragment) break;\n" 
+								"	if(target.outerHTML.toLowerCase()==Fragment)\n"
+								"      break;\n" 
+								"   target = null;\n"
 								"  }\n"
 								"}\n"
 								"else\n"
@@ -1013,75 +1018,38 @@ void CWebKitXCtrl::ExecuteSelectNode(std::string selector, std::string fragment,
 								"sel.addRange(range);\n"				
 								"var sel=window.getSelection().focusNode;\n"
 								"return (sel.nodeType==3?sel.parentNode:sel).outerHTML;\n"
-								"})(\"" + selector + "\",\"" + fragment + "\"," + (MoveCaret?"true":"false") + "," + (SelectContents?"true":"false") + ");";
-			
-			CefRefPtr<CefV8Value> retval;
+								"};";
+								
+			CefRefPtr<CefV8Value> fnPtr;
 			CefRefPtr<CefV8Exception> exception;
-			g_instnace->v8context->Eval(code.c_str(), retval, exception);			
-
-			if(retval && retval->IsString())
+			g_instnace->v8context->Eval(code, fnPtr, exception);
+			if(fnPtr && fnPtr->IsFunction())
 			{
-				CefString html = retval->GetStringValue();
-				g_instnace->document_html = CefString_to_BSTR(html, true);
-			}				
+				//std::string selector, std::string rx, bool MoveCaret, bool SelectContents
 
+				CefV8ValueList argList;
+				
+				CefRefPtr<CefV8Value> arg0 = CefV8Value::CreateString(selector);
+				argList.push_back(arg0);
+
+				CefRefPtr<CefV8Value> arg1 = CefV8Value::CreateString(rx);
+				argList.push_back(arg1);
+
+				CefRefPtr<CefV8Value> arg2 = CefV8Value::CreateBool(MoveCaret);
+				argList.push_back(arg2);
+
+				CefRefPtr<CefV8Value> arg3 = CefV8Value::CreateBool(SelectContents);
+				argList.push_back(arg3);
+
+				CefRefPtr<CefV8Value> result = fnPtr->ExecuteFunction(g_instnace->v8context->GetGlobal(), argList);
+				if(result && result->IsString())
+				{					
+					g_instnace->document_html =  CefString_to_BSTR(result->GetStringValue(), true);		
+				}	
+			}
 		}
 		g_instnace->v8context->Exit();
 	}	
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-BSTR CWebKitXCtrl::SelectedHTML(VARIANT_BOOL FullHTML)
-{
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	REQUIRE_UI_THREAD();	
-
-	class Visitor : public CefDOMVisitor
-	{
-	public:
-		VARIANT_BOOL FullHTML;
-		Visitor(VARIANT_BOOL FullHTML)
-		{
-			this->FullHTML = FullHTML;
-		}
-		virtual void Visit(CefRefPtr<CefDOMDocument> document) 
-		{
-			
-			if(FullHTML==VARIANT_TRUE)
-			{				
-				g_instnace->selection = CefString_to_BSTR(document->GetSelectionAsMarkup(), true);
-			}
-			else
-			{
-				std::string code = "(function(){var sel=window.getSelection().focusNode; return (sel.nodeType==3?sel.parentNode:sel).outerHTML;})()";
-
-				CefString _code(code.c_str());
-				CefRefPtr<CefV8Value> result;
-				CefRefPtr<CefV8Exception> exception;
-				
-				g_instnace->v8context->Enter();
-				{
-					g_instnace->v8context->Eval(_code, result, exception);
-				}				
-				g_instnace->v8context->Exit();
-				
-				if(result && result->IsString())
-				{
-					CefString html = result->GetStringValue();
-					g_instnace->selection = CefString_to_BSTR(html, true);
-				}				
-			}
-			
-			SetEvent(g_instnace->SIG_HTML_SELECTION_READY);
-		}
-		IMPLEMENT_REFCOUNTING(Visitor);
-	};
-	
-	selection = "";
-	ResetEvent(SIG_HTML_SELECTION_READY);
-	m_Browser->GetMainFrame()->VisitDOM(new Visitor(FullHTML));
-	WaitForSignal(SIG_HTML_SELECTION_READY, COMMAND_TIMEOUT_LOW);
-	return CComBSTR(selection).Detach();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1148,13 +1116,12 @@ void CWebKitXCtrl::ExecuteTidy(LPCTSTR HTML, bool CleanHTML)
 	REQUIRE_UI_THREAD();
 	g_instnace->jsresult="";	
 	g_instnace->v8context->Enter();
-	{
-		CefRefPtr<CefV8Value> fnPtr;
-		CefRefPtr<CefV8Exception> exception;
-		
+	{		
 		//Written by Nochum Sossonko, (nsossonko@hotmail.com)
 		CefString code = "__tidy_html=function(e){function t(e,t){function u(){this.pos=0;this.token=\"\";this.current_mode=\"CONTENT\";this.tags={parent:\"parent1\",parentcount:1,parent1:\"\"};this.tag_type=\"\";this.token_text=this.last_token=this.last_text=this.token_type=\"\";this.Utils={whitespace:\"\\n\\r	 \".split(\"\"),single_token:\"br,input,link,meta,!doctype,basefont,base,area,hr,wbr,param,img,isindex,?xml,embed\".split(\",\"),extra_liners:\"head,body,/html\".split(\",\"),in_array:function(e,t){for(var n=0;n<t.length;n++){if(e===t[n]){return true}}return false}};this.get_content=function(){var e=\"\";var t=[];var n=false;while(this.input.charAt(this.pos)!==\"<\"){if(this.pos>=this.input.length){return t.length?t.join(\"\"):[\"\",\"TK_EOF\"]}e=this.input.charAt(this.pos);this.pos++;this.line_char_count++;if(this.Utils.in_array(e,this.Utils.whitespace)){if(t.length){n=true}this.line_char_count--;continue}else if(n){if(this.line_char_count>=this.max_char){t.push(new_line);for(var r=0;r<this.indent_level;r++){t.push(this.indent_string)}this.line_char_count=0}else{t.push(\" \");this.line_char_count++}n=false}t.push(e)}return t.length?t.join(\"\"):\"\"};this.get_contents_to=function(e){if(this.pos==this.input.length){return[\"\",\"TK_EOF\"]}var t=\"\";var n=\"\";var r=new RegExp(\"</\"+e+\"\\\\s*>\",\"igm\");r.lastIndex=this.pos;var i=r.exec(this.input);var s=i?i.index:this.input.length;if(this.pos<s){n=this.input.substring(this.pos,s);this.pos=s}return n};this.record_tag=function(e){if(this.tags[e+\"count\"]){this.tags[e+\"count\"]++;this.tags[e+this.tags[e+\"count\"]]=this.indent_level}else{this.tags[e+\"count\"]=1;this.tags[e+this.tags[e+\"count\"]]=this.indent_level}this.tags[e+this.tags[e+\"count\"]+\"parent\"]=this.tags.parent;this.tags.parent=e+this.tags[e+\"count\"]};this.retrieve_tag=function(e){if(this.tags[e+\"count\"]){var t=this.tags.parent;while(t){if(e+this.tags[e+\"count\"]===t){break}t=this.tags[t+\"parent\"]}if(t){this.indent_level=this.tags[e+this.tags[e+\"count\"]];this.tags.parent=this.tags[t+\"parent\"]}delete this.tags[e+this.tags[e+\"count\"]+\"parent\"];delete this.tags[e+this.tags[e+\"count\"]];if(this.tags[e+\"count\"]==1){delete this.tags[e+\"count\"]}else{this.tags[e+\"count\"]--}}};this.get_tag=function(){var e=\"\";var t=[];var n=false;do{if(this.pos>=this.input.length){return t.length?t.join(\"\"):[\"\",\"TK_EOF\"]}e=this.input.charAt(this.pos);this.pos++;this.line_char_count++;if(this.Utils.in_array(e,this.Utils.whitespace)){n=true;this.line_char_count--;continue}if(e===\"'\"||e==='\"'){if(!t[1]||t[1]!==\"!\"){e+=this.get_unformatted(e);n=true}}if(e===\"=\"){n=false}if(t.length&&t[t.length-1]!==\"=\"&&e!==\">\"&&n){if(this.line_char_count>=this.max_char){this.print_newline(false,t);this.line_char_count=0}else{t.push(\" \");this.line_char_count++}n=false}t.push(e)}while(e!==\">\");var r=t.join(\"\");var i;if(r.indexOf(\" \")!=-1){i=r.indexOf(\" \")}else{i=r.indexOf(\">\")}var s=r.substring(1,i).toLowerCase();if(r.charAt(r.length-2)===\"/\"||this.Utils.in_array(s,this.Utils.single_token)){this.tag_type=\"SINGLE\"}else if(s===\"script\"){this.record_tag(s);this.tag_type=\"SCRIPT\"}else if(s===\"style\"){this.record_tag(s);this.tag_type=\"STYLE\"}else if(this.Utils.in_array(s,unformatted)){var o=this.get_unformatted(\"</\"+s+\">\",r);t.push(o);this.tag_type=\"SINGLE\"}else if(s.charAt(0)===\"!\"){if(s.indexOf(\"[if\")!=-1){if(r.indexOf(\"!IE\")!=-1){var o=this.get_unformatted(\"-->\",r);t.push(o)}this.tag_type=\"START\"}else if(s.indexOf(\"[endif\")!=-1){this.tag_type=\"END\";this.unindent()}else if(s.indexOf(\"[cdata[\")!=-1){var o=this.get_unformatted(\"]]>\",r);t.push(o);this.tag_type=\"SINGLE\"}else{var o=this.get_unformatted(\"-->\",r);t.push(o);this.tag_type=\"SINGLE\"}}else{if(s.charAt(0)===\"/\"){this.retrieve_tag(s.substring(1));this.tag_type=\"END\"}else{this.record_tag(s);this.tag_type=\"START\"}if(this.Utils.in_array(s,this.Utils.extra_liners)){this.print_newline(true,this.output)}}return t.join(\"\")};this.get_unformatted=function(e,t){if(t&&t.indexOf(e)!=-1){return\"\"}var n=\"\";var r=\"\";var i=true;do{if(this.pos>=this.input.length){return r}n=this.input.charAt(this.pos);this.pos++;if(this.Utils.in_array(n,this.Utils.whitespace)){if(!i){this.line_char_count--;continue}if(n===\"\\n\"||n===\"\\r\"){r+=new_line;this.line_char_count=0;continue}}r+=n;this.line_char_count++;i=true}while(r.indexOf(e)==-1);return r};this.get_token=function(){var e;if(this.last_token===\"TK_TAG_SCRIPT\"||this.last_token===\"TK_TAG_STYLE\"){var t=this.last_token.substr(7);e=this.get_contents_to(t);if(typeof e!==\"string\"){return e}return[e,\"TK_\"+t]}if(this.current_mode===\"CONTENT\"){e=this.get_content();if(typeof e!==\"string\"){return e}else{return[e,\"TK_CONTENT\"]}}if(this.current_mode===\"TAG\"){e=this.get_tag();if(typeof e!==\"string\"){return e}else{var n=\"TK_TAG_\"+this.tag_type;return[e,n]}}};this.get_full_indent=function(e){e=this.indent_level+e||0;if(e<1)return\"\";return Array(e+1).join(this.indent_string)};this.printer=function(e,t,n,r,i){this.input=e||\"\";this.output=[];this.indent_character=t;this.indent_string=\"\";this.indent_size=n;this.brace_style=i;this.indent_level=0;this.max_char=r;this.line_char_count=0;for(var s=0;s<this.indent_size;s++){this.indent_string+=this.indent_character}this.print_newline=function(e,t){this.line_char_count=0;if(!t||!t.length){return}if(!e){while(this.Utils.in_array(t[t.length-1],this.Utils.whitespace)){t.pop()}}t.push(new_line);for(var n=0;n<this.indent_level;n++){t.push(this.indent_string)}};this.print_token=function(e){this.output.push(e)};this.indent=function(){this.indent_level++};this.unindent=function(){if(this.indent_level>0){this.indent_level--}}};return this}var n,r,i,s,o;t=t||{};r=t.indent_size||1;i=t.indent_char||\"	\";o=t.brace_style||\"collapse\";s=t.max_char==0?Infinity:t.max_char||180;unformatted=t.unformatted||[\"a\",\"sub\",\"sup\",\"b\",\"i\",\"u\",\"pre\"];new_line=t.new_line||\"\\r\\n\";n=new u;n.printer(e,i,r,s,o);while(true){var a=n.get_token();n.token_text=a[0];n.token_type=a[1];if(n.token_type===\"TK_EOF\"){break}switch(n.token_type){case\"TK_TAG_START\":n.print_newline(false,n.output);n.print_token(n.token_text);n.indent();n.current_mode=\"CONTENT\";break;case\"TK_TAG_STYLE\":case\"TK_TAG_SCRIPT\":n.print_newline(false,n.output);n.print_token(n.token_text);n.current_mode=\"CONTENT\";break;case\"TK_TAG_END\":if(n.last_token===\"TK_CONTENT\"&&n.last_text===\"\"){var f=n.token_text.match(/\\w+/)[0];var l=n.output[n.output.length-1].match(/<\\s*(\\w+)/);if(l===null||l[1]!==f)n.print_newline(true,n.output)}n.print_token(n.token_text);n.current_mode=\"CONTENT\";break;case\"TK_TAG_SINGLE\":n.print_newline(false,n.output);n.print_token(n.token_text);n.current_mode=\"CONTENT\";break;case\"TK_CONTENT\":if(n.token_text!==\"\"){n.print_token(n.token_text)}n.current_mode=\"TAG\";break;case\"TK_STYLE\":case\"TK_SCRIPT\":if(n.token_text!==\"\"){n.output.push(new_line);var c=n.token_text;if(n.token_type==\"TK_SCRIPT\"){var h=typeof js_beautify==\"function\"&&js_beautify}else if(n.token_type==\"TK_STYLE\"){var h=typeof css_beautify==\"function\"&&css_beautify}if(t.indent_scripts==\"keep\"){var p=0}else if(t.indent_scripts==\"separate\"){var p=-n.indent_level}else{var p=1}var d=n.get_full_indent(p);if(h){c=h(c.replace(/^\\s*/,d),t)}else{var v=c.match(/^\\s*/)[0];var m=v.match(/[^\\n\\r]*$/)[0].split(n.indent_string).length-1;var g=n.get_full_indent(p-m);c=c.replace(/^\\s*/,d).replace(/\\r\\n|\\r|\\n/g,\"\\n\"+g).replace(/\\s*$/,\"\")}if(c){n.print_token(c);n.print_newline(true,n.output)}}n.current_mode=\"TAG\";break}n.last_token=n.token_type;n.last_text=n.token_text}return n.output.join(\"\")}return t(e)};";
 
+		CefRefPtr<CefV8Value> fnPtr;
+		CefRefPtr<CefV8Exception> exception;
 		g_instnace->v8context->Eval(code, fnPtr, exception);
 		if(fnPtr && fnPtr->IsFunction())
 		{

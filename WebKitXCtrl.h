@@ -51,13 +51,15 @@ public:
 	HHOOK hook;	
 	bool CEF_BROWSER_CREATED;
 	CComBSTR document_html;
-	CComBSTR selection;
 	VARIANT_BOOL m_Editable;
 	VARIANT_BOOL m_ActiveXCreated;
 	UINT UID_COUNTER;
 	bool LoadingHTML;	
+	bool SkipSelectionEvent;
 	CComBSTR jsresult;
 	std::vector<std::string> EditorCommands;
+	CComBSTR SelectedNodeHTML;
+	CComBSTR FocusedNodePath;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	CWebKitXCtrl();
@@ -103,6 +105,7 @@ public:
 
 	void AttachEditDOMEvents();
 	void __set_attribute(std::string selector, std::string attrName, std::string attrValue);	
+	CComBSTR getSelectedNodeHTML(bool CleanHTML);
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX API
@@ -128,7 +131,7 @@ public:
 	BSTR TidyHTML(LPCTSTR HTML);
 	BSTR CleanHTML(LPCTSTR HTML);
 	VARIANT_BOOL Editable(void);
-	void Find(LPCTSTR HTML);
+	void Find(LPCTSTR RegularExpression);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	// ActiveX Events
@@ -181,16 +184,15 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------
 	static const UINT_PTR ON_FOCUS_TIMER = 1001;	
-	static std::string focusNodes;
+	
 	void FireOnFocus() { KillTimer(ON_FOCUS_TIMER); SetTimer(ON_FOCUS_TIMER, 10, OnFocusTimerProc); }	
 	static void CALLBACK OnFocusTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnFocusTimer(); }	
 	void OnFocusTimer() { KillTimer(ON_FOCUS_TIMER); OnFocus(); }
 	void OnFocus(void)
 	{
-		if(focusNodes.size()==0) return;
-		debugPrint("OnFocus\n");				
-		CComBSTR btarget(focusNodes.c_str());
-		FireEvent(eventidOnFocus, EVENT_PARAM(VTS_BSTR), btarget);
+		if(FocusedNodePath.Length()==0) return;
+		debugPrint("OnFocus\n");						
+		FireEvent(eventidOnFocus, EVENT_PARAM(VTS_BSTR VTS_BSTR), FocusedNodePath, SelectedNodeHTML);
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------
@@ -212,7 +214,7 @@ public:
 	void OnSelectionChangedTimer() { KillTimer(ON_SELECTION_CHANGED_TIMER); OnSelectionChanged(); }
 	void OnSelectionChanged(void)
 	{
-		FireEvent(eventidOnSelectionChanged, EVENT_PARAM(VTS_BSTR VTS_BSTR), document_html, selection);		
+		FireEvent(eventidOnSelectionChanged, EVENT_PARAM(VTS_BSTR VTS_BSTR), document_html, SelectedNodeHTML);		
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	

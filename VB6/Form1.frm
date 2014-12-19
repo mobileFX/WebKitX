@@ -938,8 +938,9 @@ Private Sub WebKitX1_OnCreate()
     AddLog "OnCreate"
 End Sub
 
-Private Sub WebKitX1_OnFocus(ByVal NodePath As String)
-    AddLog "OnFocus: " + NodePath
+Private Sub WebKitX1_OnFocus(ByVal NodePath As String, ByVal SelectionHTML As String)
+    AddLog "OnFocus: (path) " + NodePath
+    AddLog "OnFocus: (selection) " + SelectionHTML
 End Sub
 
 Private Sub WebKitX1_OnModified()
@@ -952,10 +953,6 @@ Private Sub WebKitX1_OnReady()
     WebKitX1.addEventListenerEx "btn1", "click", Me, "OnClick", True
     Text1.Text = WebKitX1.HTML
     AddLog "OnReady"
-End Sub
-
-Private Sub WebKitX1_OnSelectionChanged(ByVal DocumentHTML As String, ByVal SelectedHTML As String)
-    AddLog "OnSelectionChanged: " + SelectedHTML
 End Sub
 
 Private Sub AddLog(ByVal msg As String)

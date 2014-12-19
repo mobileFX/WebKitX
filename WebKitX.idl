@@ -94,7 +94,7 @@ library WebKitXLib
 			[id(20)] BSTR TidyHTML(BSTR HTML);
 			[id(21)] VARIANT_BOOL Editable(void);
 			[id(22)] BSTR CleanHTML(BSTR HTML);
-			[id(23)] void Find(BSTR HTML);
+			[id(23)] void Find(BSTR RegularExpression);
 	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,7 +110,7 @@ library WebKitXLib
 		methods:
 			[id(1)] void OnReady(void);			
 			[id(2)] void OnCreate();
-			[id(3)] void OnFocus(BSTR NodePath);
+			[id(3)] void OnFocus(BSTR NodePath,  BSTR SelectionHTML);
 			[id(4)] void OnModified(void);
 			[id(DISPID_MOUSEDOWN)] void MouseDown(SHORT Button, SHORT Shift, OLE_XPOS_PIXELS x, OLE_YPOS_PIXELS y);			
 			[id(5)] void OnSelectionChanged(BSTR DocumentHTML, BSTR SelectionHTML);

@@ -185,7 +185,7 @@ public:
 	//---------------------------------------------------------------------------------------------------------------------------------------------
 	static const UINT_PTR ON_FOCUS_TIMER = 1001;	
 	
-	void FireOnFocus() { KillTimer(ON_FOCUS_TIMER); SetTimer(ON_FOCUS_TIMER, 10, OnFocusTimerProc); }	
+	void FireOnFocus() { KillTimer(ON_FOCUS_TIMER); SetTimer(ON_FOCUS_TIMER, 100, OnFocusTimerProc); }	
 	static void CALLBACK OnFocusTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) { g_instnace->OnFocusTimer(); }	
 	void OnFocusTimer() { KillTimer(ON_FOCUS_TIMER); OnFocus(); }
 	void OnFocus(void)

@@ -19,9 +19,10 @@ bool CWebKitXCtrl::CEF_INITIALIZED = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__forceinline void WaitForSignal(HANDLE signal, DWORD TimeOut)
+__forceinline void WaitForSignal(HANDLE hEvent, DWORD TimeOut)
 {
 	//CoWaitForMultipleHandles()
+	/*
 	MSG msg;
 	for(;;)
 	{	
@@ -32,6 +33,42 @@ __forceinline void WaitForSignal(HANDLE signal, DWORD TimeOut)
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
+		}
+	}
+	*/
+
+	// This seems to work better - no deadlocks during tests
+	// Still, it feels I should use CoWaitForMultipleHandles 
+
+	DWORD dwRet;
+	MSG msg;
+
+	while(1)
+	{
+		dwRet = MsgWaitForMultipleObjects(  1,				// One event to wait for
+											&hEvent,        // The array of events
+											FALSE,          // Wait for 1 event
+											INFINITE,       // Timeout value
+											QS_ALLINPUT);   // Any message wakes up
+		
+		if(dwRet == WAIT_OBJECT_0)
+		{
+			// The event was signaled, return
+			return;
+		} 
+		else if(dwRet == WAIT_OBJECT_0 + 1)
+		{
+			// There is a window message available. Dispatch it.
+			while(PeekMessage(&msg,NULL,NULL,NULL,PM_REMOVE))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		} 
+		else
+		{
+			// Something else happened. Return.
+			return;
 		}
 	}
 }
@@ -855,6 +892,7 @@ void CWebKitXCtrl::HandleDOMEvent(CefRefPtr<CefDOMEvent>* e)
 	{				
 		if(!LoadingHTML)
 		{
+			FireOnMouseDown();
 			SelectedNodeHTML = getSelectedNodeHTML(true);
 			FireOnFocus();		
 		}

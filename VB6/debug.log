@@ -10,3 +10,4 @@
 [1217/152452:INFO:CONSOLE(0)] "Uncaught TypeError: Cannot read property 'nodeType' of null," source: http://localhost/(1)
 [1217/152556:INFO:CONSOLE(0)] "Uncaught TypeError: Cannot read property 'nodeType' of null," source: http://localhost/(1)
 [1217/152614:INFO:CONSOLE(0)] "Uncaught TypeError: Cannot read property 'nodeType' of null," source: http://localhost/(1)
+[1224/100633:WARNING:resource_bundle.cc(303)] locale_file_path.empty()

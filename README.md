@@ -5,10 +5,7 @@ December 2017 Update
 A Visual Studio 2015 C++11 MFC/ATL ActiveX implementation that wraps Chromium Embedded Framework (CEF3) version 3.3202.1692 (Dec 2017) for use with OLE/COM languages such as Visual Basic 6.0 SP1, Delphi, C++ and C# is available for commercial use on [http://www.webkitx.com](http://www.webkitx.com). 
 
 Please note that WebKitX with deprecated CEF1 is no longer supported.
-
-![](WebKitX.png)
-
-[<img src="donate.png">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MGVFWZBWKFTPN)
+----------
 
 WebKitX
 =======
@@ -339,11 +336,3 @@ mobileFX CTO/Partner.
 Contribute / Donate
 -------------------
 If this project is useful for you, you can help me sustain it either by contributing or by donating with Paypal.
-
-[<img src="donate.png">](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=MGVFWZBWKFTPN)
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/mobileFX/webkitx/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
-
-

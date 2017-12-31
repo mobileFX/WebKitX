@@ -7,6 +7,11 @@ WebKitX
 
 This is a Visual Studio 2010 SP1 C++ MFC/ATL ActiveX Project that wraps Chromium Embedded Framework (CEF) version 1.1364.1123 for use with OLE/COM languages such as Visual Basic 6.0 SP1.
 
+December 2017 Update !!
+=======
+
+### A commercial version of WebKitX using latest CEF3 can be found here at [http://www.webkitx.com](http://www.webkitx.com) ###
+
 Background
 ----------
 

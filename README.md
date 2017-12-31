@@ -1,4 +1,4 @@
-#### December 2017 Update ####
+December 2017 Update
 =======
 
 ## A commercial version of WebKitX ActiveX using latest CEF3 is available on [http://www.webkitx.com](http://www.webkitx.com) ##
